@@ -1,0 +1,25 @@
+<!--
+  slots/footer.html  (Slotify.slots.footer)
+  The app footer, rendered inside the global <v-footer>. This is a COMPLETE
+  default (site title + copyright) — overriding this file in your own site
+  replaces the whole footer. Self-contained: the copyright string lives in the
+  i18n block below and is read via the slot's scoped ctx.t().
+
+  Receives `ctx`: { siteConfig, route, t }.
+-->
+<script type="application/json" data-slotify-i18n="Slotify.slots.footer">
+{
+  "en": { "copyright": "Copyright {year} {title}. All rights reserved." },
+  "zh": { "copyright": "Copyright {year} {title}. 保留所有權利。" }
+}
+</script>
+<script type="text/x-template" id="slot-footer-template">
+  <div class="text-center">
+    <div class="text-body-1 font-weight-bold mb-2 mt-4" style="font-family: var(--font-heading) !important;">
+      {{ "{{" }} ctx.siteConfig.title {{ "}}" }}
+    </div>
+    <div class="text-body-2 font-weight-medium opacity-70">
+      {{ "{{" }} ctx.t('copyright', { year: new Date().getFullYear(), title: ctx.siteConfig.title || '' }) {{ "}}" }}
+    </div>
+  </div>
+</script>

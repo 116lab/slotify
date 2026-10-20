@@ -1,0 +1,15 @@
+<!--
+  slots/head.html  (raw <head> injection slot)
+
+  This is a TYPE-1 slot: it is injected verbatim into the document <head> by
+  layouts/index.html and runs at HTML parse time. It is NOT a Vue component —
+  it has no ctx, no events, and no i18n namespace (those concepts do not apply
+  to the <head>). It is deliberately absent from data/slots.json.
+
+  NOTE: "head" means the document <head> (analytics, meta, fonts, CSS) — NOT
+  the visual page-header / nav bar (that is the AppHeader component).
+
+  Override this file in your own site (layouts/partials/slots/head.html) to
+  add Google Analytics, custom CSS, third-party web fonts, or <meta> tags
+  without modifying the core theme.
+-->

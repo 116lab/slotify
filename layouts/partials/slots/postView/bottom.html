@@ -1,0 +1,16 @@
+<!--
+  slots/postView/bottom.html  (Slotify.slots.postView.bottom)
+  Below-article slot, anchored under the post BaseSurface. This is the default
+  home of a commenting system. Override in your own site
+  (layouts/partials/slots/postView/bottom.html) to integrate Disqus, Giscus,
+  Utterances, etc.
+
+  The <slotify-slot> wrapper dispatches a `slotify:slot` window CustomEvent on
+  mount / ctx-update / unmount, with detail = { id, phase, ctx, el }, so your
+  embed can (re)initialize across SPA navigation (e.g. DISQUS.reset on a new
+  post). A `slotify:locale` event fires on UI-language change.
+
+  Receives `ctx`: { pageData, pageIdentifier, siteConfig, route, t }.
+  Default: empty; see the README "Comments" section for ready-to-copy overrides.
+-->
+<script type="text/x-template" id="slot-postView-bottom-template"><div></div></script>

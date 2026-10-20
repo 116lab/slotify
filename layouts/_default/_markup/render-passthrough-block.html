@@ -1,0 +1,6 @@
+{{- /*
+  render-passthrough-block.html
+  Renders a display/block LaTeX formula captured by Goldmark's passthrough extension.
+  The formula source is preserved in data-math for useKatex.js SPA hydration.
+*/ -}}
+<div class="math display" data-math="{{ .Inner }}">{{ .Inner }}</div>

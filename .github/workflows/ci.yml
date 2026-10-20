@@ -1,0 +1,120 @@
+# GitHub Actions for a THEME repo: the theme lives at the repo root and the demo
+# content is in exampleSite/ (which sets `theme = 'slotify'`). There is no
+# submodule — the theme is the repo — so the build points Hugo at exampleSite
+# as the source and resolves the theme via --themesDir (../.. relative to the
+# source: 'slotify' is expected at <themesDir>/slotify, i.e. the repo root).
+# Mirrors the verified local command: `hugo --source exampleSite --themesDir ../..`.
+#
+# Runs for pull requests, pushes to main, and tags. The demo deploys to GitHub
+# Pages (Settings → Pages → Source: GitHub Actions) from main only.
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+# Cancel superseded runs on the same ref, but never a main deploy in flight.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions:
+  contents: read
+
+env:
+  # Pinned to the version the build was verified against; bump deliberately.
+  HUGO_VERSION: "0.157.0"
+
+jobs:
+  # Quality gate: governance audit + JSON validation + browser smoke tests.
+  # Mirrors the local pre-commit hook (.agent/scripts/pre-commit) and the
+  # README's `npm test`, so CI enforces what otherwise relied on a developer
+  # remembering to run them. The Pages deploy is gated on this job.
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Hugo
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/hugo.deb" "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb"
+          sudo dpkg -i "$RUNNER_TEMP/hugo.deb"
+          hugo version
+      # Runs all checks the local pre-commit hook runs (vendor integrity,
+      # lifecycle ordering, LF, indent, palette/i18n/slots/ctx/site-config SSOT,
+      # and changelog rules and links), so CI and local enforcement never drift.
+      - name: Governance audit
+        run: sh .agent/scripts/pre-commit
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      # The JSON validators read exampleSite/public, so build it first.
+      # Playwright boots its own `hugo server` (see playwright.config.js).
+      - name: Build and validate exampleSite
+        run: |
+          hugo --source exampleSite --themesDir ../..
+          python3 exampleSite/validate.py
+          python3 exampleSite/deep_validate.py
+      - run: npm test
+      # Intent evidence: every citation in intent/** must resolve to exactly one
+      # listed Playwright test. Pinned plerosis release; `check --run` executes
+      # the configured listing (project code), so it stays in this secret-free,
+      # read-only job.
+      - name: Intent evidence (plerosis)
+        run: |
+          curl -fsSL https://gitlab.com/116lab/coherence/plerosis/plerosis/-/raw/v0.1.1/install.sh | sh -s -- --version v0.1.1
+          export PATH="$HOME/.local/bin:$PATH"
+          plerosis check --run
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          retention-days: 7
+          path: |
+            playwright-report/
+            test-results/
+
+  build-pages:
+    needs: test
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: pages
+        uses: actions/configure-pages@v5
+      - name: Install Hugo
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/hugo.deb" "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb"
+          sudo dpkg -i "$RUNNER_TEMP/hugo.deb"
+      # --source exampleSite: build the demo, not the (content-less) theme root.
+      # --themesDir ../..: resolve `theme = 'slotify'` to the repo root.
+      # --baseURL: the Pages URL (e.g. https://<owner>.github.io/slotify/, or a
+      # custom domain), which the SPA reads back via window.__SLOTIFY_BASE__ for
+      # base-aware routing.
+      - name: Build exampleSite
+        run: hugo --source exampleSite --themesDir ../.. --gc --minify --baseURL "${{ steps.pages.outputs.base_url }}/"
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: exampleSite/public
+
+  deploy-pages:
+    needs: build-pages
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,79 @@
+<!--
+  slots/postView/left.html  (Slotify.slots.postView.left)
+  Left rail of a post (ContentShell #aside-left). Default: the Series Navigator.
+  Self-contained: UI strings (i18n block), markup (x-template) AND styles
+  (<style> below — the series-specific rules; the shared sidebar-panel base stays
+  in slotify.css). Override in your own site to replace the left rail entirely.
+  Receives `ctx`: { pageData, error, siteConfig, route, t }.
+-->
+<style>
+/* Series Navigator — routable series title + numbered badges (Slotify.slots.postView.left). */
+.series-nav-title {
+    display: block;
+    margin-bottom: 0.75rem;
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 0.9rem;
+    line-height: 1.3;
+    color: rgb(var(--v-theme-on-surface));
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+.series-nav-title:hover {
+    color: rgb(var(--v-theme-primary));
+    text-decoration: underline;
+}
+.series-nav-list {
+    counter-reset: series;
+}
+.series-nav-item {
+    counter-increment: series;
+}
+.series-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.series-nav-link::before {
+    content: counter(series);
+    flex-shrink: 0;
+    width: 1.3rem;
+    height: 1.3rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 0.65rem;
+    font-weight: 700;
+    background: rgba(var(--v-theme-primary), 0.12);
+    color: rgb(var(--v-theme-primary));
+}
+a.series-nav-link:hover {
+    color: rgb(var(--v-theme-on-surface));
+    background: rgba(var(--v-theme-primary), 0.06);
+}
+.series-nav-link--current {
+    color: rgb(var(--v-theme-primary));
+    font-weight: 700;
+    background: rgba(var(--v-theme-primary), 0.10);
+}
+.series-nav-link--current::before {
+    background: rgb(var(--v-theme-primary));
+    color: rgb(var(--v-theme-on-primary));
+}
+</style>
+<script type="application/json" data-slotify-i18n="Slotify.slots.postView.left">
+{
+  "en": { "title": "Series Navigation", "expand": "Expand series navigation", "collapse": "Collapse series navigation" },
+  "zh": { "title": "系列導覽", "expand": "展開系列導覽", "collapse": "收合系列導覽" }
+}
+</script>
+<script type="text/x-template" id="slot-postView-left-template">
+  <series-navigator
+    v-if="ctx.pageData && ctx.pageData.seriesNav"
+    :nav="ctx.pageData.seriesNav"
+    :title="ctx.t('title')"
+    :expand-label="ctx.t('expand')"
+    :collapse-label="ctx.t('collapse')"
+  ></series-navigator>
+</script>

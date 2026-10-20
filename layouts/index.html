@@ -1,0 +1,39 @@
+{{- /*
+  index.html (home)
+  The SPA shell now lives in _default/baseof.html; this template only provides
+  the home page's crawlable #seo-content body and its <head> meta (via
+  seo/head.html). The SPA (HomeView.js) renders the real home feed; main.js
+  removes #seo-content on mount.
+*/ -}}
+{{- /* In static pagination mode this template renders once per pager page
+       (/, /page/2/, …). Calling `.Paginate` on the SAME collection and size as
+       home.json is what makes Hugo emit the /page/N/index.html SPA shell next to
+       /page/N/index.json — and it lets each pager page carry a crawlable body of
+       just that page's posts. In client mode no `.Paginate` is called (so no
+       pager pages are generated) and the body lists the full feed. */ -}}
+{{- define "seobody" -}}
+{{- /* if/else, not `cond`: cond evaluates BOTH branches, which would fire
+       .Paginate (and generate pager pages) even in client mode. */ -}}
+{{- $pc := partial "func/pagination-config.html" . -}}
+{{- $feed := partial "func/feed-pages.html" . -}}
+{{- $posts := $feed.ByDate.Reverse -}}
+{{- if eq $pc.mode "static" -}}
+  {{- $posts = (.Paginate $feed $pc.size).Pages -}}
+{{- end -}}
+<section class="seo-home">
+  <h1>{{ .Site.Title }}</h1>
+  {{- with .Site.Params.description }}<p class="seo-tagline">{{ . }}</p>{{ end }}
+  {{- with .Content }}<div class="seo-home-intro">{{ . }}</div>{{ end }}
+  <ul class="seo-post-list">
+    {{- range $posts }}
+    <li>
+      <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+      <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "January 2, 2006" }}</time>
+      {{- with (or .Params.summary .Params.description .Summary) }}
+      <p>{{ . | plainify | replaceRE "\\s+" " " }}</p>
+      {{- end }}
+    </li>
+    {{- end }}
+  </ul>
+</section>
+{{- end -}}

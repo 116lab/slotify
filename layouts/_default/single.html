@@ -1,0 +1,28 @@
+{{- /*
+  _default/single.html
+  Crawlable HTML body for a single post/page. The visual rendering is done by
+  the SPA (PostView.js); this server-rendered article is what search engines and
+  no-JS clients read, and the per-page <head> meta comes from seo/head.html via
+  baseof.html. main.js removes #seo-content once the SPA mounts.
+*/ -}}
+{{- define "seobody" -}}
+{{- $author := .Params.author | default .Site.Params.author -}}
+<article class="seo-article">
+  <h1>{{ .Title }}</h1>
+  <p class="seo-article-meta">
+    {{- with $author }}<span class="seo-author">{{ . }}</span>{{ end -}}
+    <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "January 2, 2006" }}</time>
+    {{- with .GetTerms "tags" }}
+    <span class="seo-tags">
+      {{- range . }}<a href="{{ .RelPermalink }}" rel="tag">{{ .LinkTitle }}</a>{{ end -}}
+    </span>
+    {{- end -}}
+  </p>
+  {{- with partial "func/resolve-image.html" . }}
+  <img src="{{ . | absURL }}" alt="{{ $.Title }}" class="seo-hero">
+  {{- end }}
+  <div class="seo-article-body">
+    {{ .Content }}
+  </div>
+</article>
+{{- end -}}

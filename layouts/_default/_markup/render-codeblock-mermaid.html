@@ -1,0 +1,18 @@
+{{- /*
+  render-codeblock-mermaid.html
+  Holds a Mermaid diagram's source. Hugo's raw `.Inner` — exactly what the
+  author typed inside the ```mermaid fence — is carried verbatim in the
+  `data-graph` attribute. The element body is intentionally empty: the SPA
+  (static/js/composables/useMermaid.js) reads `data-graph` as the source and
+  renders the SVG into the body.
+
+  Keeping the source only in the attribute means the front-end never has to
+  recover it by reading textContent back out of the DOM — so the encode/decode
+  round-trips through `jsonify` + Vue `v-html` + the browser's HTML parser can't
+  corrupt or re-derive the diagram source.
+
+  Note: the attribute name must not end in src/href/url/uri, or Go's
+  html/template treats it as a URL context and percent-escapes the value
+  instead of applying plain attribute escaping.
+*/ -}}
+<div class="mermaid" data-graph="{{ .Inner }}"></div>

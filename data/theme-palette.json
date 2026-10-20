@@ -1,0 +1,26 @@
+{
+  "vibrant": {
+    "light": { "background": "#F8FAFC", "surface": "#FFFFFF", "primary": "#7C3AED", "secondary": "#0B825B" },
+    "dark":  { "background": "#0F172A", "surface": "#1E293B", "primary": "#A78BFA", "secondary": "#34D399" }
+  },
+  "sunset": {
+    "light": { "background": "#FFFBF5", "surface": "#FFFFFF", "primary": "#E40D32", "secondary": "#9F6707" },
+    "dark":  { "background": "#181111", "surface": "#261A1A", "primary": "#FB7185", "secondary": "#FBBF24" }
+  },
+  "forest": {
+    "light": { "background": "#F9FAF3", "surface": "#FFFFFF", "primary": "#15803D", "secondary": "#4F5B10" },
+    "dark":  { "background": "#0F1A13", "surface": "#1A2E22", "primary": "#4ADE80", "secondary": "#A8C322" }
+  },
+  "ocean": {
+    "light": { "background": "#F0F9FF", "surface": "#FFFFFF", "primary": "#0369A1", "secondary": "#0F766E" },
+    "dark":  { "background": "#0A131F", "surface": "#112240", "primary": "#38BDF8", "secondary": "#2DD4BF" }
+  },
+  "nordic": {
+    "light": { "background": "#F1F5F9", "surface": "#FFFFFF", "primary": "#475569", "secondary": "#187986" },
+    "dark":  { "background": "#0F172A", "surface": "#1E293B", "primary": "#94A3B8", "secondary": "#67E8F9" }
+  },
+  "espresso": {
+    "light": { "background": "#FAF7F4", "surface": "#FFFFFF", "primary": "#78350F", "secondary": "#8F6619" },
+    "dark":  { "background": "#1A1614", "surface": "#2C2522", "primary": "#E66A0B", "secondary": "#FCD34D" }
+  }
+}

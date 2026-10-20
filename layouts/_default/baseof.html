@@ -1,0 +1,341 @@
+{{- /* Palette resolution: theme defaults (data/theme-palette.json) deep-merged
+       with an optional site override (hugo.toml [params.palette]). merge recurses
+       into the nested maps and the site value wins, so a consuming site can
+       override a single role (e.g. params.palette.vibrant.light.primary) without
+       restating the rest — unlike a data/ file, which Hugo merges only shallowly
+       and would drop the untouched roles. This $palette feeds both the pre-paint
+       splash colors and window.__SLOTIFY_THEMES__ below. */ -}}
+{{- $palette := merge (index .Site.Data "theme-palette") (.Site.Params.palette | default dict) -}}
+{{- /* Personality order. Hugo maps lose key order and jsonify emits keys
+       alphabetically, so the order — and with it the default personality, its
+       first id — comes from [params] personalityOrder (theme default in the
+       theme's hugo.toml; a site replaces the whole array). Listed ids missing from
+       $palette are dropped; palette ids missing from the list follow
+       alphabetically, so a site-added personality still appears. */ -}}
+{{- $personalities := slice -}}
+{{- range (.Site.Params.personalityOrder | default slice) -}}
+  {{- if and (index $palette .) (not (in $personalities .)) -}}{{- $personalities = $personalities | append . -}}{{- end -}}
+{{- end -}}
+{{- range $id, $_ := $palette -}}
+  {{- if not (in $personalities $id) -}}{{- $personalities = $personalities | append $id -}}{{- end -}}
+{{- end -}}
+{{- /* Default colour mode for a first-time visitor (no stored choice):
+       "light" (default) | "dark" | "auto" (follow the OS prefers-color-scheme).
+       Consumed in two places that MUST agree to avoid a flash — the pre-paint
+       splash below and window.__SLOTIFY_DEFAULT_MODE__ (read by config/themes.js).
+       Both resolve "auto" with the same matchMedia query, so they stay in sync. */ -}}
+{{- $defaultMode := site.Params.defaultColorMode | default "light" -}}
+<!DOCTYPE html>
+<html lang="{{ .Site.LanguageCode | default "en" }}">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Per-page SEO <head>: title, description, canonical, Open Graph, Twitter
+       cards, and JSON-LD structured data. This is where crawler/social meta is
+       defined, and it branches on the page Kind. Social crawlers
+       (Facebook/Line/Twitter/Slack) don't execute JS, so this server-rendered
+       block is what produces a correct per-URL share preview. -->
+  {{- partial "seo/head.html" . -}}
+
+  <!-- Google Fonts (Inter & Outfit) -->
+  <link rel="stylesheet" href="{{ "vendor/css/google-fonts.css" | relURL }}">
+
+  <!-- Core Vendor CSS (Dynamic loading from data/vendor.json) -->
+  {{- range where .Site.Data.vendor.css "load" "ne" false -}}
+  <link href="{{ (printf "vendor/%s" .dest) | relURL }}" rel="stylesheet">
+  {{- end -}}
+
+  <!-- Core Theme Stylesheet -->
+  <link rel="stylesheet" href="{{ "css/slotify.css" | relURL }}">
+
+  <!-- Static-host SPA Hack (GitHub/GitLab Pages) - Part 2/Restore -->
+  <!-- Every route emits a real HTML file, so deep links resolve with a 200 and
+       this path is only exercised for query-string carry-over from the 404
+       fallback. Kept for that edge case; harmless on normal navigation. -->
+  <script>
+    (({ search, hash }) => {
+      if (search[1] === 'p' && search[2] === '=') {
+        const base = '{{ .Site.BaseURL }}';
+        const q = search.slice(3).split('&q=');
+        let path = q[0];
+        if (base && path.startsWith(new URL(base).pathname)) {
+          // Prevent duplicating the base path if it was already included
+          path = path.replace(new URL(base).pathname, '/');
+        }
+        const searchStr = q[1] ? `?${q[1].replace(/~and~/g, '&')}` : '';
+        window.history.replaceState(null, null,
+          `${base}${path.charAt(0) === '/' ? path.slice(1) : path}${searchStr}${hash}`
+        );
+      }
+    })(window.location);
+  </script>
+
+  <script>
+    // Critical: Apply theme-specific colors to the splash screen before the first
+    // paint. The palette is defined in data/theme-palette.json, injected by Hugo —
+    // the same object as window.__SLOTIFY_THEMES__ below — so it stays in sync
+    // with config/themes.js. No hardcoded color map here.
+    (function () {
+      const palette = {{ $palette | jsonify | safeJS }};
+      // The default personality is the first id of the resolved personality order
+      // ([params] personalityOrder) — no hardcoded name. This matches
+      // config/themes.js `defaultPersonality`.
+      const defaultId = {{ index $personalities 0 | jsonify | safeJS }};
+      // Site default mode ([params] defaultColorMode); 'auto' follows the OS.
+      // Resolved here the same way config/themes.js does, so the pre-paint class
+      // and Vuetify's booted theme never disagree.
+      var defaultMode = '{{ $defaultMode }}';
+      if (defaultMode === 'auto') {
+        defaultMode = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+      }
+      const fallbackTheme = defaultId + '-' + defaultMode;
+      // Guarded: this runs pre-paint, before any module loads, so it can't use
+      // utils/storage.js. localStorage can throw (private mode / blocked storage);
+      // a throw here would skip splash theming, so fall back to the default theme.
+      let savedTheme = fallbackTheme;
+      try { savedTheme = localStorage.getItem('user-theme') || fallbackTheme; } catch (e) {}
+      const isDark = savedTheme.endsWith('-dark');
+      // Strip the mode suffix (robust to any id); reconcile a removed/curated-out
+      // personality back to the default so the splash always has real colors.
+      let personality = savedTheme.replace(/-(light|dark)$/, '');
+      if (!palette[personality]) personality = defaultId;
+      const roles = palette[personality][isDark ? 'dark' : 'light'];
+
+      const root = document.documentElement;
+      root.classList.add('slotify-js', isDark ? 'v-theme--dark' : 'v-theme--light');
+
+      const p = roles.primary;
+      const s = roles.secondary;
+      root.style.setProperty('--v-theme-primary', p);
+      root.style.setProperty('--v-theme-secondary', s);
+      // Dedicated splash gradient vars (hex). Unlike --v-theme-*, these are
+      // never overwritten by Vuetify's RGB-triplet format, so the splash
+      // title/bar gradient stays valid for the whole boot (no black fallback).
+      root.style.setProperty('--splash-grad-1', p);
+      root.style.setProperty('--splash-grad-2', s);
+    })();
+  </script>
+
+  <style>
+    /* Prevent FOUC (Flash of Unstyled Content) before Vue loads */
+    [v-cloak] {
+      display: none;
+    }
+
+    /*
+       Fixed-Viewport Architecture
+       Permanently lock the body scroll to prevent windows jitter.
+       Move all scrolling to .v-application (the app root inside #app).
+    */
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100% !important;
+      overflow: hidden !important;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--splash-bg);
+    }
+
+    /* Primary Framework Scroll Root */
+    #app {
+      height: 100dvh;
+      width: 100%;
+      overflow: hidden !important;
+      position: relative;
+    }
+
+    /* Moving scroll logic to Vuetify's root container */
+    .v-application {
+      height: 100dvh !important;
+      overflow-y: scroll !important;
+      overflow-x: hidden !important;
+      scrollbar-gutter: stable !important;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Splash Screen is fixed and covers the entire scrolling root */
+    #loading-guide {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100% !important;
+      height: 100% !important;
+      z-index: 9999;
+      background: var(--splash-bg);
+    }
+
+    /* Crawler/no-JS content. It carries the real, server-rendered page body for
+       search engines and JavaScript-disabled clients. The fixed splash (z-index
+       9999) covers it during boot, and main.js removes it the moment the SPA
+       mounts — so JS users never see it. It is positioned out of the normal flow
+       so it never affects the SPA layout while present. */
+    #seo-content {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 0;
+    }
+  </style>
+
+  <!-- With JS disabled the splash overlay (z-index 9999) is never removed and
+       would hide the crawlable #seo-content body; dismiss the overlay, restore
+       scrolling, hide the empty SPA root, and let the real content show. This
+       turns the no-JS experience into the actual article rather than a spinner. -->
+  <noscript>
+    <style>
+      #loading-guide { display: none !important; }
+      #app { display: none !important; }
+      html, body { overflow: auto !important; height: auto !important; }
+      #seo-content { position: static !important; }
+    </style>
+  </noscript>
+
+
+  <!-- Global Vendor Scripts (Dynamic loading from data/vendor.json) -->
+  <!-- Import map: a stable bare specifier -> the vendored ESM file, generated
+       from the `specifier` field of data/vendor.json (the load=false entries:
+       Vue, Fuse). App modules and the bridge below import by specifier (e.g.
+       `from 'vue'`), so swapping a version is purely a vendor.json change, and a
+       site can repoint a specifier — even to a different file — by overriding
+       this. MUST precede every module script, so it sits before the bridge. -->
+  {{- $imports := dict -}}
+  {{- range where .Site.Data.vendor.js "specifier" "ne" nil -}}
+    {{- $imports = merge $imports (dict .specifier ((printf "vendor/%s" .dest) | relURL)) -}}
+  {{- end -}}
+  <script type="importmap">
+  {{ (dict "imports" $imports) | jsonify (dict "indent" "  ") | safeHTML }}
+  </script>
+  <!-- Some ESM vendors must also exist as globals (Vue) so the no-bundler app
+       and the classic Vue Router / Vuetify builds share one runtime. Bridge each
+       entry that declares a `global` in data/vendor.json onto window as a
+       namespace import (so named exports — e.g. Vue's createApp/ref — land
+       directly on the global), importing it through the specifier above — no
+       hardcoded path. The local binding is a generated identifier and the global
+       is set with bracket notation, so any `global` string is safe (it never
+       has to be a valid JS identifier). The body is assembled as a string and
+       marked safeJS so it stays code (contextual autoescaping would otherwise
+       quote it as a JS string). -->
+  {{- $bridge := "" -}}
+  {{- range $i, $e := where .Site.Data.vendor.js "global" "ne" nil -}}
+    {{- $bridge = printf "%simport * as _slotifyVendor%d from %q;\nwindow[%q] = _slotifyVendor%d;\n" $bridge $i $e.specifier $e.global $i -}}
+  {{- end -}}
+  <script type="module">
+  {{ $bridge | safeJS }}
+  </script>
+  <!-- `defer` unblocks the parser so the splash screen paints immediately;
+       deferred classic scripts still execute in document order, before the
+       module entry (js/main.js) at the end of <body>, so the router/Vuetify/etc
+       globals are guaranteed to be present when main.js runs. Entries marked
+       load=false are imported by app modules instead of inserted here. -->
+  {{- range where .Site.Data.vendor.js "load" "ne" false -}}
+  <script src="{{ (printf "vendor/%s" .dest) | relURL }}" defer></script>
+  {{- end -}}
+
+  <!-- Custom User Injection Hooks -->
+  {{- range .Site.Params.customCSS -}}
+  <link rel="stylesheet" href="{{ relURL . }}">
+  {{- end -}}
+  {{- partial "slots/head.html" . -}}
+</head>
+
+<body>
+  <!-- Loading Guide (Splash Screen) Overlay -->
+  <div id="loading-guide">
+    <div class="loading-content">
+      <div class="loading-title">{{ .Site.Title | default "" }}</div>
+      <div class="loading-bar-container">
+        <div class="loading-bar-indeterminate"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SPA Root Node -->
+  <div id="app" v-cloak></div>
+
+  <!-- Crawlable, server-rendered content body. Filled by each HTML template's
+       {{ printf "%s" "{{ define \"seobody\" }}" }} block (single/list/home).
+       Read by search engines and no-JS clients; removed by main.js on mount. -->
+  <div id="seo-content">
+    {{- block "seobody" . }}{{ end -}}
+  </div>
+
+  <!-- Inject Slot x-templates. The directory layouts/partials/slots/ holds the
+       slot partials; data/slots.json is the machine-readable manifest that Hugo
+       ranges to include each <view>/<position> partial. Site owners override a
+       slot by placing layouts/partials/slots/<view>/<position>.html in their
+       own project (Hugo partial override) — without touching the theme. -->
+  {{- range $key, $_ := .Site.Data.slots -}}
+  {{- partial (printf "slots/%s.html" $key) . -}}
+  {{- end -}}
+
+  <!-- Expose deployment base + route config to the SPA. Hugo defines the
+       taxonomy keys (.Site.Taxonomies); the SPA route module
+       (static/js/config/routes.js) consumes this global. -->
+  <script>
+    window.__SLOTIFY_BASE__ = "{{ (urls.Parse .Site.BaseURL).Path }}";
+    {{- $taxos := slice }}{{ range $name, $_ := .Site.Taxonomies }}{{ $taxos = $taxos | append $name }}{{ end -}}
+    {{- /* paginationMode is needed synchronously, before any fetch: routes.js
+           registers the /page/N routes (and router.js toggles the /page/N strip
+           guard) at import time from it. "client" (default) keeps the full feed +
+           client-side slicing; "static" uses Hugo's build-time paginator, where
+           each /page/N/ is a real HTML+JSON page the SPA navigates between. Page
+           size is NOT exposed here: the SPA derives it from each payload (full
+           feed length in client mode, pagerTotal in static), so only the mode
+           must travel as a synchronous global. */ -}}
+    {{- $features := dict "mermaid" true "math" true -}}
+    {{- with .Site.Params.features -}}
+      {{- $features = merge $features . -}}
+    {{- end -}}
+    window.__SLOTIFY_CONFIG__ = {{ (dict
+        "taxonomies" $taxos
+        "paginationMode" (partial "func/pagination-config.html" .).mode
+        "features" $features
+      ) | jsonify | safeJS }};
+    // Palette (data/theme-palette.json + optional [params.palette] override,
+    // deep-merged above) -> Vuetify themes (config/themes.js).
+    window.__SLOTIFY_THEMES__ = {{ $palette | jsonify | safeJS }};
+    // Ordered personality ids ([params] personalityOrder, resolved above): the
+    // switcher order and, first, the default personality (config/themes.js).
+    window.__SLOTIFY_PERSONALITIES__ = {{ $personalities | jsonify | safeJS }};
+    // Slot manifest (data/slots.json) -> Slotify Slots system (hooks.js).
+    window.__SLOTIFY_SLOTS__ = {{ (index .Site.Data "slots") | jsonify | safeJS }};
+    // Locales (data/locales.json) -> i18n.js. Ordered [{code,label}], first =
+    // default/fallback. A site overrides the set via [[params.locales]] (replaces
+    // this list — arrays don't deep-merge) + a matching static/js/i18n/<code>.json.
+    window.__SLOTIFY_LOCALES__ = {{ (.Site.Params.locales | default (index .Site.Data "locales")) | jsonify | safeJS }};
+    // Site config (build-time data, partials/func/site-config.html) -> consumed
+    // synchronously by main.js. Same inject-and-consume pattern as the globals
+    // above; never fetched at runtime.
+    window.__SLOTIFY_SITE__ = {{ (partial "func/site-config.html" .) | jsonify | safeJS }};
+    {{/* Lazy classic vendor URLs: data/vendor.json entries with a `lazy` key are
+         skipped by the eager defer loop above and injected on demand by the SPA —
+         e.g. Mermaid, only fetched on a page that has a .mermaid diagram — keyed
+         by that `lazy` name. A Hugo comment (not //): a JS line comment here
+         would, after whitespace-trimming the actions below, swallow the
+         assignment onto the comment line. */ -}}
+    {{ $lazy := dict }}
+    {{- range where .Site.Data.vendor.js "lazy" "ne" nil -}}
+    {{- $lazy = merge $lazy (dict .lazy ((printf "vendor/%s" .dest) | relURL)) -}}
+    {{- end }}
+    {{- range where .Site.Data.vendor.css "lazy" "ne" nil -}}
+    {{- $lazy = merge $lazy (dict (printf "%sCss" .lazy) ((printf "vendor/%s" .dest) | relURL)) -}}
+    {{- end }}
+    window.__SLOTIFY_LAZY__ = {{ $lazy | jsonify | safeJS }};
+    // Default colour mode for a first visit ([params] defaultColorMode); the RAW
+    // value travels (incl. "auto") so config/themes.js resolves it identically to
+    // the pre-paint splash. A stored user choice always wins over this.
+    window.__SLOTIFY_DEFAULT_MODE__ = {{ $defaultMode | jsonify | safeJS }};
+  </script>
+
+  <!-- Mount Vue App. Factored into partials/app-entry.html so a site can choose
+       how the SPA boots — the default raw ES-module graph, the scriptBundle
+       param, or a wholesale override for Hugo-native js.Build — without copying
+       this template. Bundling is opt-in; the theme ships no bundler. -->
+  {{- partial "app-entry.html" . -}}
+</body>
+
+</html>

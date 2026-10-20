@@ -1,0 +1,5 @@
+{{- $list := slice -}}
+{{- range (where .Site.RegularPages "Section" "posts") -}}
+  {{- $list = $list | append (merge (partial "func/card-data.html" .) (dict "content" (.Plain | replaceRE "\\s+" " "))) -}}
+{{- end -}}
+{{- $list | jsonify -}}

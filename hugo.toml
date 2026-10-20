@@ -1,0 +1,73 @@
+name = 'slotify'
+description = 'A premium SPA theme for technical bloggers'
+version = '0.2.3'
+
+# Emit /robots.txt (layouts/robots.txt) advertising the sitemap. Sitemap.xml is
+# generated automatically by Hugo; every Kind outputs HTML.
+enableRobotsTXT = true
+
+[mediaTypes]
+  [mediaTypes.'application/json']
+    suffixes = ['json']
+
+[outputFormats]
+  [outputFormats.JSON]
+    mediaType = 'application/json'
+    baseName = 'index'
+    isPlainText = true
+    notAlternative = true
+  [outputFormats.SEARCHINDEX]
+    mediaType = 'application/json'
+    baseName = 'search-index'
+    isPlainText = true
+    notAlternative = true
+
+# Every Kind now emits HTML *and* JSON. The HTML is a real, per-URL document
+# carrying SEO <head> meta + a crawlable content body (see layouts/_default/
+# baseof.html), then it boots the SPA which takes over. The JSON is still the
+# SPA's data source for client-side navigation between pages. Emitting HTML for
+# every route is also what lets static hosts (GitLab/GitHub Pages) serve deep
+# links with a 200 instead of the 404->?p= redirect hack.
+[outputs]
+  taxonomy = ['HTML', 'JSON']
+  term     = ['HTML', 'JSON']
+  home     = ['HTML', 'JSON', 'SEARCHINDEX']
+  page     = ['HTML', 'JSON']
+  section  = ['HTML', 'JSON']
+
+[taxonomies]
+  tag = "tags"
+  series = "series"
+
+[module]
+  [module.hugoVersion]
+    extended = false
+    min = '0.146.0'
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.extensions]
+      [markup.goldmark.extensions.passthrough]
+        enable = true
+        [markup.goldmark.extensions.passthrough.delimiters]
+          block = [['\[', '\]'], ['$$', '$$']]
+          inline = [['\(', '\)'], ['$', '$']]
+
+# Theme default params (a consuming site overrides any in its own [params];
+# Hugo merges site params over the theme's). Full reference — values, defaults,
+# and behaviour — is the "Theme Parameters" table in the theme README.
+[params]
+  pagerSize = 10               # feed page size (home + taxonomy term lists)
+  paginationMode = "client"    # "client" (in-memory) | "static" (Hugo paginator)
+  defaultColorMode = "light"   # first-visit mode: "light" | "dark" | "auto" (OS)
+  # Personality order for the switcher; the FIRST id is the default personality.
+  # Hugo maps (data files, params) lose key order, so the order is declared here
+  # rather than read from data/theme-palette.json. A site replaces the whole array;
+  # palette ids it leaves out follow alphabetically.
+  personalityOrder = ["vibrant", "sunset", "forest", "ocean", "nordic", "espresso"]
+  # scriptBundle = "js/slotify.bundle.js"   # opt-in single-bundle SPA entry
+
+[params.features]
+  mermaid = true
+  math    = true
+

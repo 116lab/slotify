@@ -1,0 +1,15 @@
+{{- /*
+  func/card-data.html
+  Single source of truth for the post-card JSON shape consumed by the SPA
+  (home, taxonomy lists, search index, and — merged with extra fields — single
+  pages). Context (.) is the page. Returns a dict.
+*/ -}}
+{{- return (dict
+  "title" .Title
+  "url" (partial "func/route-path.html" .RelPermalink)
+  "date" (.Date.Format "2006-01-02")
+  "summary" (or .Params.summary .Params.description .Summary | plainify | replaceRE "\\s+" " ")
+  "tags" (.Params.tags | default slice)
+  "series" (.Params.series | default slice)
+  "image" (partial "func/resolve-image.html" .)
+) -}}

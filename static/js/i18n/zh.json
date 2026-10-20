@@ -1,0 +1,37 @@
+{
+  "menu": {
+    "home": "首頁",
+    "posts": "文章",
+    "tags": "標籤",
+    "series": "系列",
+    "search": "搜尋",
+    "about": "關於"
+  },
+  "ui": {
+    "readMore": "閱讀更多",
+    "loadingFailed": "載入失敗",
+    "notFoundText": "找不到要求的頁面，或伺服器發生錯誤。",
+    "backToHome": "回到首頁",
+    "searchHint": "搜尋文章或標籤...",
+    "noResults": "找不到結果",
+    "author": "作者",
+    "readingTime": "閱讀約 {min} 分鐘",
+    "words": "{count} 字",
+    "searchPrompt": "輸入關鍵字開始搜尋。",
+    "switchLanguage": "切換語言",
+    "switchColorScheme": "切換色彩方案：{name}",
+    "switchToLight": "切換到淺色模式",
+    "switchToDark": "切換到深色模式",
+    "themeStyle": "主題風格",
+    "lightboxImage": "燈箱圖片",
+    "close": "關閉",
+    "copyCode": "複製",
+    "copiedCode": "已複製！",
+    "copyCodeFailed": "錯誤",
+    "mermaidError": "圖表無法渲染（語法錯誤）",
+    "mathError": "公式無法渲染（語法錯誤）"
+  },
+  "home": {
+    "latestArticles": "最新文章"
+  }
+}

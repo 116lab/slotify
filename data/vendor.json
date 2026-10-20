@@ -1,0 +1,176 @@
+{
+    "fonts": [
+        {
+            "name": "Material Design Icons Font",
+            "url": "https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/fonts/materialdesignicons-webfont.woff2",
+            "dest": "fonts/materialdesignicons-webfont.woff2"
+        },
+        {
+            "name": "KaTeX AMS Regular Font",
+            "url": "https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/fonts/KaTeX_AMS-Regular.woff2",
+            "dest": "fonts/KaTeX_AMS-Regular.woff2"
+        },
+        {
+            "name": "KaTeX Caligraphic Bold Font",
+            "url": "https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/fonts/KaTeX_Caligraphic-Bold.woff2",
+            "dest": "fonts/KaTeX_Caligraphic-Bold.woff2"
+        },
+        {
+            "name": "KaTeX Caligraphic Regular Font",
+            "url": "https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/fonts/KaTeX_Caligraphic-Regular.woff2",
+            "dest": "fonts/KaTeX_Caligraphic-Regular.woff2"
+        },
+        {
+            "name": "KaTeX Fraktur Bold Font",
+            "url": "https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/fonts/KaTeX_Fraktur-Bold.woff2",
+            "dest": "fonts/KaTeX_Fraktur-Bold.woff2"
+        },
+        {
+            "name": "KaTeX Fraktur Regular Font",
+            "url": "https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/fonts/KaTeX_Fraktur-Regular.woff2",
+            "dest": "fonts/KaTeX_Fraktur-Regular.woff2"
+        },
+        {
+            "name": "KaTeX Main Bold Font",
+            "url": "https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/fonts/KaTeX_Main-Bold.woff2",
+            "dest": "fonts/KaTeX_Main-Bold.woff2"
+        },
+        {
+            "name": "KaTeX Main BoldItalic Font",
+            "url": "https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/fonts/KaTeX_Main-BoldItalic.woff2",
+            "dest": "fonts/KaTeX_Main-BoldItalic.woff2"
+        },
+        {
+            "name": "KaTeX Main Italic Font",
+            "url": "https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/fonts/KaTeX_Main-Italic.woff2",
+            "dest": "fonts/KaTeX_Main-Italic.woff2"
+        },
+        {
+            "name": "KaTeX Main Regular Font",
+            "url": "https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/fonts/KaTeX_Main-Regular.woff2",
+            "dest": "fonts/KaTeX_Main-Regular.woff2"
+        },
+        {
+            "name": "KaTeX Math BoldItalic Font",
+            "url": "https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/fonts/KaTeX_Math-BoldItalic.woff2",
+            "dest": "fonts/KaTeX_Math-BoldItalic.woff2"
+        },
+        {
+            "name": "KaTeX Math Italic Font",
+            "url": "https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/fonts/KaTeX_Math-Italic.woff2",
+            "dest": "fonts/KaTeX_Math-Italic.woff2"
+        },
+        {
+            "name": "KaTeX SansSerif Bold Font",
+            "url": "https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/fonts/KaTeX_SansSerif-Bold.woff2",
+            "dest": "fonts/KaTeX_SansSerif-Bold.woff2"
+        },
+        {
+            "name": "KaTeX SansSerif Italic Font",
+            "url": "https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/fonts/KaTeX_SansSerif-Italic.woff2",
+            "dest": "fonts/KaTeX_SansSerif-Italic.woff2"
+        },
+        {
+            "name": "KaTeX SansSerif Regular Font",
+            "url": "https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/fonts/KaTeX_SansSerif-Regular.woff2",
+            "dest": "fonts/KaTeX_SansSerif-Regular.woff2"
+        },
+        {
+            "name": "KaTeX Script Regular Font",
+            "url": "https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/fonts/KaTeX_Script-Regular.woff2",
+            "dest": "fonts/KaTeX_Script-Regular.woff2"
+        },
+        {
+            "name": "KaTeX Size1 Regular Font",
+            "url": "https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/fonts/KaTeX_Size1-Regular.woff2",
+            "dest": "fonts/KaTeX_Size1-Regular.woff2"
+        },
+        {
+            "name": "KaTeX Size2 Regular Font",
+            "url": "https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/fonts/KaTeX_Size2-Regular.woff2",
+            "dest": "fonts/KaTeX_Size2-Regular.woff2"
+        },
+        {
+            "name": "KaTeX Size3 Regular Font",
+            "url": "https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/fonts/KaTeX_Size3-Regular.woff2",
+            "dest": "fonts/KaTeX_Size3-Regular.woff2"
+        },
+        {
+            "name": "KaTeX Size4 Regular Font",
+            "url": "https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/fonts/KaTeX_Size4-Regular.woff2",
+            "dest": "fonts/KaTeX_Size4-Regular.woff2"
+        },
+        {
+            "name": "KaTeX Typewriter Regular Font",
+            "url": "https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/fonts/KaTeX_Typewriter-Regular.woff2",
+            "dest": "fonts/KaTeX_Typewriter-Regular.woff2"
+        }
+    ],
+    "css": [
+        {
+            "name": "Material Design Icons",
+            "url": "https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css",
+            "dest": "css/materialdesignicons.min.css"
+        },
+        {
+            "name": "Vuetify CSS",
+            "url": "https://cdn.jsdelivr.net/npm/vuetify@4.0.7/dist/vuetify.min.css",
+            "dest": "css/vuetify.min.css"
+        },
+        {
+            "name": "KaTeX CSS",
+            "url": "https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css",
+            "dest": "css/katex.min.css",
+            "load": false,
+            "lazy": "katex",
+            "rewrites": [
+                {
+                    "from": "url(fonts/",
+                    "to": "url(../fonts/"
+                }
+            ]
+        }
+    ],
+    "js": [
+        {
+            "name": "Vue 3",
+            "url": "https://unpkg.com/vue@3.5.35/dist/vue.esm-browser.prod.js",
+            "dest": "js/vue.esm-browser.prod.js",
+            "load": false,
+            "specifier": "vue",
+            "global": "Vue"
+        },
+        {
+            "name": "Vue Router 5",
+            "url": "https://unpkg.com/vue-router@5.0.7/dist/vue-router.global.prod.js",
+            "dest": "js/vue-router.global.prod.js"
+        },
+        {
+            "name": "Vuetify JS",
+            "url": "https://cdn.jsdelivr.net/npm/vuetify@4.0.7/dist/vuetify.min.js",
+            "dest": "js/vuetify.min.js"
+        },
+        {
+            "name": "Fuse.js",
+            "url": "https://cdn.jsdelivr.net/npm/fuse.js@7.3.0/dist/fuse.min.mjs",
+            "dest": "js/fuse.min.mjs",
+            "load": false,
+            "specifier": "fuse"
+        },
+        {
+            "name": "Mermaid JS",
+            "url": "https://cdn.jsdelivr.net/npm/mermaid@11.15.0/dist/mermaid.min.js",
+            "dest": "js/mermaid.min.js",
+            "load": false,
+            "lazy": "mermaid"
+        },
+        {
+            "name": "KaTeX JS",
+            "url": "https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js",
+            "dest": "js/katex.min.js",
+            "load": false,
+            "lazy": "katex"
+        }
+    ],
+    "google_fonts_url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@700;800;900&display=swap"
+}

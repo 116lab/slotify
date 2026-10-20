@@ -1,0 +1,44 @@
+{{- /*
+  _default/list.html
+  Crawlable HTML body for every list-type page: section lists (e.g. /posts/),
+  the taxonomy term cloud (/tags/), and a single term's posts (/tags/guide/).
+  Mirrors the branching of _default/list.json so crawlers see the same set of
+  links the SPA renders. The SPA (TaxonomyView.js) does the visual rendering;
+  main.js removes #seo-content on mount.
+*/ -}}
+{{- define "seobody" -}}
+<section class="seo-list">
+  <h1>{{ .Title }}</h1>
+  {{- with .Content }}<div class="seo-list-intro">{{ . }}</div>{{ end }}
+  {{- if or (eq .Kind "taxonomy") (eq .Kind "taxonomyTerm") }}
+  <ul class="seo-term-cloud">
+    {{- range .Data.Terms.Alphabetical }}
+    <li><a href="{{ .Page.RelPermalink }}">{{ .Page.Title }}</a> ({{ .Count }})</li>
+    {{- end }}
+  </ul>
+  {{- else }}
+  {{- /* Collection via func/feed-pages.html (shared with list.json) so the
+         crawlable body and the SPA payload never range different sets. In static
+         mode a single term renders once per pager page; paginating the SAME
+         collection/size as list.json is what emits the /page/N/index.html shell
+         next to its JSON. if/else, not `cond` — cond would fire .Paginate (and
+         generate pager pages) even in client mode. */ -}}
+  {{- $pc := partial "func/pagination-config.html" . }}
+  {{- $pages := (partial "func/feed-pages.html" .).ByDate.Reverse }}
+  {{- if and (eq $pc.mode "static") (eq .Kind "term") }}
+  {{- $pages = (.Paginate (partial "func/feed-pages.html" .) $pc.size).Pages }}
+  {{- end }}
+  <ul class="seo-post-list">
+    {{- range $pages }}
+    <li>
+      <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+      <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "January 2, 2006" }}</time>
+      {{- with (or .Params.summary .Params.description .Summary) }}
+      <p>{{ . | plainify | replaceRE "\\s+" " " }}</p>
+      {{- end }}
+    </li>
+    {{- end }}
+  </ul>
+  {{- end }}
+</section>
+{{- end -}}

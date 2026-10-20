@@ -1,0 +1,32 @@
+{{- /*
+  func/site-config.html — the one place that builds the SPA's build-time "site
+  config" object. Returns the `config` dict, consumed from this single source
+  two ways:
+    - layouts/home.json    embeds it as `config` in /index.json
+    - layouts/_default/baseof.html injects it as window.__SLOTIFY_SITE__ (synchronous)
+  This is the inject-and-consume pattern, the same approach used for
+  __SLOTIFY_THEMES__ / __SLOTIFY_SLOTS__ / __SLOTIFY_CONFIG__. It is build-time data
+  (title/social/menu/…) and should not be fetched at runtime: a runtime fetch
+  leaves ctx.siteConfig empty on a direct deep-link.
+*/ -}}
+{{- $menu := slice -}}
+{{- range .Site.Menus.main -}}
+  {{- /* Base-less route path so it matches the SPA's URL contract (router/
+         withBase re-add the deployment base). route-path leaves external menu
+         URLs untouched (their prefix never matches the site base). */ -}}
+  {{- $menu = $menu | append (dict "name" .Name "url" (partial "func/route-path.html" .URL) "weight" .Weight) -}}
+{{- end -}}
+{{- $social := .Site.Params.social | default dict -}}
+{{- /* Note: pagination config is not here. `[params] pagerSize` (page size) and
+       `[params] paginationMode` (client|static) are injected into the OTHER
+       synchronous global, window.__SLOTIFY_CONFIG__ (baseof.html), because the
+       router needs the mode at import time; the list templates read the size/mode
+       directly. This site-config global is just build-time chrome (title/social/
+       menu), so pagination is deliberately kept out of it. */ -}}
+{{- return (dict
+    "title" .Site.Title
+    "description" (.Site.Params.description | default "")
+    "author" (.Site.Params.author | default "")
+    "social" $social
+    "menu" $menu
+  ) -}}

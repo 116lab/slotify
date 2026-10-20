@@ -1,0 +1,36 @@
+{{- /*
+  func/feed-pages.html
+  The single source for "which pages does this list view show", resolved by
+  Kind. Centralized so the crawlable HTML body (index.html / list.html seobody)
+  and the SPA's JSON payload (home.json / list.json) — and, in static mode, the
+  HTML and JSON pager pages — always range the EXACT same set in the EXACT same
+  order. Any drift here would make /page/2/index.html and /page/2/index.json
+  disagree about what's on page 2.
+
+  Context (.): the list page. Returns an ordered page collection.
+
+  - home    -> the posts section's regular pages (the landing feed).
+  - term    -> the term's pages, with the same fallbacks list.json uses
+               (direct .Pages, then a taxonomy lookup, then a params scan)
+               so an empty .Pages on a term page still resolves its posts.
+  - else    -> .RegularPages (section lists).
+
+  The term-cloud Kinds (taxonomy / taxonomyTerm) are intentionally NOT handled
+  here: they render a term cloud, not a post feed, and are never paginated.
+*/ -}}
+{{- $pages := slice -}}
+{{- if eq .Kind "home" -}}
+  {{- $pages = where .Site.RegularPages "Section" "posts" -}}
+{{- else if eq .Kind "term" -}}
+  {{- $pages = .Pages -}}
+  {{- if eq (len $pages) 0 -}}
+    {{- $tax := index site.Taxonomies .Data.Plural .Data.Term -}}
+    {{- if $tax -}}{{- $pages = $tax.Pages -}}{{- end -}}
+  {{- end -}}
+  {{- if eq (len $pages) 0 -}}
+    {{- $pages = where site.RegularPages (printf "Params.%s" .Data.Plural) "intersect" (slice .Title) -}}
+  {{- end -}}
+{{- else -}}
+  {{- $pages = .RegularPages -}}
+{{- end -}}
+{{- return $pages -}}

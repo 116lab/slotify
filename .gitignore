@@ -1,0 +1,23 @@
+public/
+public_test/
+public-*/
+.vscode/
+.DS_Store
+tmp/
+*.tmp.*
+*.log
+
+# Hugo build artifacts
+resources/
+.hugo_build.lock
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Node / Playwright (browser smoke tests)
+node_modules/
+test-results/
+playwright-report/
+playwright/.cache/

@@ -1,0 +1,23 @@
+<!--
+  slots/home/banner.html  (Slotify.slots.home.banner)
+  Home hero banner slot, rendered above the article list. Override in your own
+  site (layouts/partials/slots/home/banner.html) to provide a custom hero.
+
+  Receives `ctx`: { siteConfig, route, t }. Default: the gradient hero below.
+-->
+<script type="text/x-template" id="slot-home-banner-template">
+  <v-card
+    style="background: linear-gradient(135deg, rgb(var(--v-theme-primary)) 0%, rgb(var(--v-theme-secondary)) 50%, rgb(var(--v-theme-primary)) 100%); background-size: 200% 200%;"
+    class="mb-10 elevation-12 rounded-xl text-white"
+  >
+    <v-card-text class="pa-10 text-center fade-up">
+      <v-icon size="80" class="mb-4 text-secondary">mdi-sparkles-outline</v-icon>
+      <h1 class="font-weight-black mb-4">
+        {{ "{{" }} ctx.siteConfig.title || '' {{ "}}" }}
+      </h1>
+      <p class="text-h6 opacity-90 font-weight-regular">
+        {{ "{{" }} ctx.siteConfig.description || '' {{ "}}" }}
+      </p>
+    </v-card-text>
+  </v-card>
+</script>

@@ -1,0 +1,48 @@
+{{- /*
+  _default/list.json
+  Single template for every list-type JSON endpoint (Hugo's generic list
+  fallback): section lists, the taxonomy term cloud, and a single term's posts.
+  The post-card shape comes from func/card-data.html; only the term-cloud branch
+  has its own shape (title/url/count) since it is not a card. There are no
+  separate _default/term.json or _default/taxonomy.json, so this stays the one
+  place that builds list JSON.
+
+  Pagination (selected by `[params] paginationMode`, default "client") applies
+  only to a single TERM's posts — the one list-route the SPA actually paginates
+  (TaxonomyView term mode). The term cloud is never paginated, and section lists
+  keep shipping their full set (no SPA route paginates a section), so neither
+  emits /page/N/ pager pages. See home.json for the home feed and the mode docs.
+*/ -}}
+{{- $pc := partial "func/pagination-config.html" . -}}
+{{- $mode := $pc.mode -}}
+{{- $size := $pc.size -}}
+{{- $list := slice -}}
+{{- $payload := dict "title" .Title -}}
+{{- if or (eq .Kind "taxonomy") (eq .Kind "taxonomyTerm") -}}
+  {{- /* Term cloud: title/url/count entries, never paginated. */ -}}
+  {{- range .Data.Terms.Alphabetical -}}
+    {{- $list = $list | append (dict "title" .Page.Title "url" (partial "func/route-path.html" .Page.RelPermalink) "count" .Count) -}}
+  {{- end -}}
+  {{- $payload = merge $payload (dict "list" $list "paginate" $size "paginationMode" "client") -}}
+{{- else if and (eq $mode "static") (eq .Kind "term") -}}
+  {{- /* Static mode, single term: this template renders once per pager page
+         (/tags/x/, /tags/x/page/2/, …). list.html paginates the same collection
+         and size so the matching /page/N/index.html SPA shell is emitted too. */ -}}
+  {{- $paginator := .Paginate (partial "func/feed-pages.html" .) $size -}}
+  {{- range $paginator.Pages -}}
+    {{- $list = $list | append (partial "func/card-data.html" .) -}}
+  {{- end -}}
+  {{- $payload = merge $payload (dict
+      "list" $list
+      "paginationMode" "static"
+      "pagerCurrent" $paginator.PageNumber
+      "pagerTotal" $paginator.TotalPages) -}}
+{{- else -}}
+  {{- /* Client mode (term or section): ship the full set; the SPA slices it
+         client-side off `paginate`. Collection per Kind via func/feed-pages. */ -}}
+  {{- range (partial "func/feed-pages.html" .) -}}
+    {{- $list = $list | append (partial "func/card-data.html" .) -}}
+  {{- end -}}
+  {{- $payload = merge $payload (dict "list" $list "paginate" $size "paginationMode" "client") -}}
+{{- end -}}
+{{- $payload | jsonify (dict "indent" "  ") -}}

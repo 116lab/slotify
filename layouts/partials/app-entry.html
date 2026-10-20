@@ -1,0 +1,20 @@
+{{- /*
+  partials/app-entry.html
+  Emits the SPA's boot <script>. Three ways a site can boot, in increasing order
+  of control — all opt-in, the theme ships no bundler and requires none:
+
+  1. Default (no config): the raw ES-module graph, js/main.js + its imports. No
+     build step — the theme's standard.
+  2. `[params] scriptBundle`: a single prebuilt module (an absolute URL, or a
+     path under the published root, e.g. "js/slotify.bundle.js"). Built with any
+     tool; the SPA boots from it instead, collapsing the graph into one request.
+  3. Wholesale override: a site that bundles with Hugo's own js.Build (zero
+     external dependency) overrides THIS partial and emits its built resource's
+     .RelPermalink — see the Bundling & Vendor section in README.md for the recipe.
+
+  The entry is always type="module": a bundle may keep vendor (e.g. Fuse) as
+  sibling ESM imports or inline it, and either is valid under module loading.
+*/ -}}
+{{- $entry := site.Params.scriptBundle | default "js/main.js" -}}
+{{- $src := cond (or (hasPrefix $entry "http") (hasPrefix $entry "//")) $entry ($entry | relURL) -}}
+<script type="module" src="{{ $src }}"></script>

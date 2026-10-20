@@ -1,0 +1,69 @@
+<!--
+  slots/appHeader.html  (Slotify.slots.appHeader)
+  The VISUAL navigation chrome — the header / nav bar AND its mobile drawer
+  (distinct from slots/head.html, which is the document <head>). This is a
+  COMPLETE default: it mounts the theme's <app-header> + <app-drawer> and forwards
+  all interactive state through ctx. Override this file in your own site to
+  replace the entire navigation chrome; reuse the forwarded ctx handlers
+  (setPersonality / setDark / setLocale / toggleDrawer / setDrawer) to keep
+  theme, language, and drawer controls working, or build something custom.
+
+  Receives `ctx`: { siteConfig, route, t, currentPersonality, isDark, personalities,
+  currentLocale, drawer, setPersonality, setDark, setLocale, toggleDrawer,
+  setDrawer }. setLocale(code) jumps to a specific language (the default button
+  cycles; override with a dropdown calling setLocale for many languages).
+
+  THEME-SWITCHER PRESENTATION lives here, not in core JS. The i18n block below
+  decorates each palette personality (data/theme-palette.json key) with a display
+  `name` (per locale, so it follows the language switch) and an `icon`. The
+  palette owns WHICH personalities exist + their order; this slot only says how
+  they LOOK. To localize names, change icons, or relabel a personality, override
+  THIS file and edit the block — no core fork. An id present in the palette but
+  missing here degrades to a capitalized id + mdi-palette; an entry here for an
+  id not in the palette is simply ignored.
+-->
+<script type="application/json" data-slotify-i18n="Slotify.slots.appHeader">
+{
+  "en": {
+    "styles": {
+      "vibrant":  { "name": "Vibrant",  "icon": "mdi-palette" },
+      "sunset":   { "name": "Sunset",   "icon": "mdi-weather-sunset" },
+      "forest":   { "name": "Forest",   "icon": "mdi-tree" },
+      "ocean":    { "name": "Ocean",    "icon": "mdi-waves" },
+      "nordic":   { "name": "Nordic",   "icon": "mdi-snowflake" },
+      "espresso": { "name": "Espresso", "icon": "mdi-coffee" }
+    }
+  },
+  "zh": {
+    "styles": {
+      "vibrant":  { "name": "繽紛",   "icon": "mdi-palette" },
+      "sunset":   { "name": "日落",   "icon": "mdi-weather-sunset" },
+      "forest":   { "name": "森林",   "icon": "mdi-tree" },
+      "ocean":    { "name": "海洋",   "icon": "mdi-waves" },
+      "nordic":   { "name": "北歐",   "icon": "mdi-snowflake" },
+      "espresso": { "name": "濃縮",   "icon": "mdi-coffee" }
+    }
+  }
+}
+</script>
+<script type="text/x-template" id="slot-appHeader-template">
+  <app-header
+    :site-config="ctx.siteConfig"
+    :current-personality="ctx.currentPersonality"
+    :is-dark="ctx.isDark"
+    :personalities="ctx.personalities"
+    :current-locale="ctx.currentLocale"
+    @update:current-personality="ctx.setPersonality"
+    @update:is-dark="ctx.setDark"
+    @set-locale="ctx.setLocale"
+    @toggle-drawer="ctx.toggleDrawer"
+  ></app-header>
+
+  <app-drawer
+    :model-value="ctx.drawer"
+    :personalities="ctx.personalities"
+    :current-personality="ctx.currentPersonality"
+    @update:model-value="ctx.setDrawer"
+    @update:current-personality="ctx.setPersonality"
+  ></app-drawer>
+</script>

@@ -1,0 +1,43 @@
+{{- /*
+  home.json — the landing feed payload consumed by HomeView/useHome.
+  The page collection comes from func/feed-pages.html (shared with the seobody
+  in index.html) so the crawlable list and the SPA feed never drift.
+
+  Two pagination modes, selected by `[params] paginationMode` (default "client"):
+
+  - "client": ship the WHOLE feed; the SPA slices it client-side off
+      `config.paginate` (page size). This is the original behaviour. The size is
+      read from params (not `.Paginate`) on purpose — calling `.Paginate` in
+      client mode would emit orphan /page/N/index.json pager files that no
+      client-mode route maps to.
+
+  - "static": Hugo's build-time paginator. THIS template renders once per pager
+      page (/, /page/2/, …), each time emitting only that page's cards plus the
+      page cursor (`pagerCurrent`/`pagerTotal`). index.html paginates the SAME
+      collection at the SAME size, so the matching /page/N/index.html SPA shell
+      is generated right alongside this JSON.
+*/ -}}
+{{- $pc := partial "func/pagination-config.html" . -}}
+{{- $mode := $pc.mode -}}
+{{- $size := $pc.size -}}
+{{- $feed := partial "func/feed-pages.html" . -}}
+{{- $posts := slice -}}
+{{- /* `config` is built by the shared func/site-config.html partial so home.json
+       and the window.__SLOTIFY_SITE__ injection in baseof.html never drift. */ -}}
+{{- $config := partial "func/site-config.html" . -}}
+{{- if eq $mode "static" -}}
+  {{- $paginator := .Paginate $feed $size -}}
+  {{- range $paginator.Pages -}}
+    {{- $posts = $posts | append (partial "func/card-data.html" .) -}}
+  {{- end -}}
+  {{- $config = merge $config (dict
+      "paginationMode" "static"
+      "pagerCurrent" $paginator.PageNumber
+      "pagerTotal" $paginator.TotalPages) -}}
+{{- else -}}
+  {{- range $feed -}}
+    {{- $posts = $posts | append (partial "func/card-data.html" .) -}}
+  {{- end -}}
+  {{- $config = merge $config (dict "paginationMode" "client" "paginate" $size) -}}
+{{- end -}}
+{{- dict "posts" $posts "config" $config | jsonify (dict "indent" "  ") -}}

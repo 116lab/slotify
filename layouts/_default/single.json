@@ -1,0 +1,20 @@
+{{- /* Reuse the shared card shape, then layer the single-page-only fields. */ -}}
+{{- $card := partial "func/card-data.html" . -}}
+{{/* Series navigation: sibling posts in this post's first series (reading order). */}}
+{{- $seriesNav := dict -}}
+{{- with .GetTerms "series" -}}
+  {{- $term := index . 0 -}}
+  {{- $items := slice -}}
+  {{- range $term.Pages.ByDate -}}
+    {{- $items = $items | append (dict "title" .Title "url" (partial "func/route-path.html" .RelPermalink) "current" (eq .Path $.Path)) -}}
+  {{- end -}}
+  {{- $seriesNav = dict "name" $term.Title "url" (partial "func/route-path.html" $term.RelPermalink) "posts" $items -}}
+{{- end -}}
+{{- $extra := dict
+  "author" (.Params.author | default site.Params.author)
+  "readingTime" .ReadingTime
+  "wordCount" .WordCount
+  "content" .Content
+  "seriesNav" $seriesNav
+-}}
+{{- merge $card $extra | jsonify (dict "indent" "  ") -}}

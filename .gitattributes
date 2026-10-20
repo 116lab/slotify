@@ -1,0 +1,6 @@
+# Force Linux-First line endings (LF) for all generic text files
+* text eol=lf
+
+# Treat all vendor files as binary/raw text to prevent Git from converting LF to CRLF
+# This guarantees that downloaded CDN files perfectly match their source hashes.
+static/vendor/** -text

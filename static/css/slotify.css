@@ -1,0 +1,1452 @@
+:root {
+    --splash-bg: #F4F7F9;
+    --splash-text: #000000;
+}
+
+/* Layout geometry for ContentShell.js (its inline styles reference these via
+   var()). The reading column, the rail-aware container, and the sticky rail
+   offset all derive from here, so changing the app bar height or content width
+   updates the shell in one place. --rail-sticky-top = app bar height (Vuetify
+   v-app-bar default 64px; see AppHeader.js) + a 32px gap. */
+:root {
+    --app-bar-height: 64px;
+    --shell-max-width: 1528px;      /* rail-aware 3-column container */
+    --content-col-max: 1000px;      /* centre column soft cap */
+    --content-max-width: 960px;     /* reading column: article body + lists */
+    --rail-sticky-top: calc(var(--app-bar-height) + 32px);          /* 96px */
+    --rail-max-height: calc(100vh - var(--rail-sticky-top) - 24px); /* 100vh - 120px */
+}
+
+/* Small utility classes shared across components (heading font, the flex
+   min-width:0 text-shrink workaround). */
+.font-heading {
+    font-family: var(--font-heading) !important;
+}
+
+.min-width-0 {
+    min-width: 0;
+}
+
+
+
+/* -----------------------------------------
+   Hardware acceleration utility
+   Applied to animated elevation components
+   ----------------------------------------- */
+body .v-card--hover-lift,
+body .post-list-item .v-img__img,
+.img-hover-zoom,
+body .v-btn,
+body .v-navigation-drawer .v-list-item,
+body .v-menu .v-list-item,
+body .v-pagination__item,
+body .v-pagination__prev,
+body .v-pagination__next,
+body .v-pagination__first,
+body .v-pagination__last,
+body .v-chip {
+    will-change: transform, box-shadow;
+    transform: perspective(1px) translateZ(0);
+    backface-visibility: hidden;
+}
+/* Loading Guide (Splash Screen) Styles */
+#loading-guide {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--splash-bg);
+    color: var(--splash-text);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    transition: opacity var(--transition-slow), background-color var(--transition-main), visibility 0.8s;
+}
+
+.loading-content {
+    text-align: center;
+}
+
+.loading-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 900;
+    letter-spacing: -0.05em;
+    margin-bottom: 2rem;
+    /* --splash-grad-* are set from the palette by baseof.html before first paint;
+       the neutral grays are a safety fallback only. */
+    background: linear-gradient(135deg, var(--splash-grad-1, #6B7280), var(--splash-grad-2, #9CA3AF));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.loading-bar-container {
+    width: 200px;
+    height: 4px;
+    margin: 0 auto;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    position: relative;
+}
+
+.loading-bar-indeterminate {
+    width: 40%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--splash-grad-1, #6B7280), var(--splash-grad-2, #9CA3AF));
+    border-radius: var(--radius-sm);
+    position: absolute;
+    animation: progress-loading 1.5s infinite ease-in-out;
+}
+
+@keyframes progress-loading {
+    0% {
+        left: -40%;
+    }
+
+    100% {
+        left: 100%;
+    }
+}
+
+.loading-guide-hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+/* Global Selection & Focus */
+::selection {
+    background: rgba(var(--v-theme-primary), 0.2);
+    color: inherit;
+}
+
+:root {
+    /* Ultra-Refined Typography */
+    --font-heading: 'Outfit', sans-serif;
+    --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+    --letter-spacing-base: -0.011em;
+    --letter-spacing-heading: -0.022em;
+
+    /* Motion & Easing (Cubic Bezier for premium feel) */
+    --ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-standard: cubic-bezier(0.25, 1, 0.5, 1);
+    --transition-slow: 0.8s var(--ease-emphasized);
+    --transition-main: 0.3s var(--ease-standard);
+    --transition-fast: 0.2s ease;
+    --transition-zoom-image: 0.6s var(--ease-emphasized);
+    /* Route page transition (App.js <transition name="page">). Kept SEPARATE from
+       --transition-slow (which the splash fade and fade-up reuse) so the route
+       change can be snappy without slowing the boot. A fast leave + a short,
+       decelerated enter keeps the fade-rise feel without the heavy 0.8s dwell. */
+    --transition-page-in: 0.34s var(--ease-emphasized);
+    --transition-page-out: 0.16s ease;
+
+    /* Advanced Glassmorphism & Depth */
+    --glass-blur: 20px;
+    --glass-bg-opacity: 0.75;
+    /* Light mode mirrors dark's white-on-dark hairline with black-on-light.
+       Opacity (0.08) is tuned for PERCEPTUAL parity with dark's 0.06, not a
+       literal copy: per Weber, a dark edge on a light surface reads slightly
+       weaker per unit alpha than the inverse, so it sits a touch higher. */
+    --glass-border: rgba(0, 0, 0, 0.08);
+    --glass-bg: rgba(var(--v-theme-surface), var(--glass-bg-opacity));
+    --noise-opacity: 0.03;
+
+    /* Ambient Occlusion Shadow Architecture */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 8px 16px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+    --shadow-lg: 0 24px 48px rgba(0, 0, 0, 0.12), 0 8px 16px rgba(0, 0, 0, 0.06);
+    --shadow-xl: 0 32px 64px rgba(0, 0, 0, 0.16), 0 12px 24px rgba(0, 0, 0, 0.08);
+
+    /* Surface & border radius system */
+    --radius-lg: 32px;
+    --radius-md: 16px;
+    --radius-sm: 8px;
+    /* Pill is a shape primitive (fully-rounded ends), not part of the rhythmic
+       container scale above; tokenized so every radius still flows through a var. */
+    --radius-pill: 9999px;
+}
+
+.v-theme--dark {
+    --splash-bg: #121212;
+    --splash-text: #FFFFFF;
+    --glass-bg-opacity: 0.60;
+    --glass-border: rgba(255, 255, 255, 0.06);
+    --noise-opacity: 0.05;
+}
+
+/* Base Headings Polish */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--font-heading);
+    letter-spacing: var(--letter-spacing-heading);
+    margin: 0;
+}
+
+/* Post List Feed Architecture (Premium Technical Blog) */
+.post-list-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.post-list-item {
+    width: 100%;
+    container-type: inline-size;
+    content-visibility: auto;
+    contain-intrinsic-size: auto 240px;
+}
+
+@media (max-width: 960px) {
+    .post-list-feed {
+        gap: 24px;
+    }
+}
+
+/* Featured image sizing logic (Refined v2.0) */
+.post-card-inner {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    /* Remove fixed height to allow flexbox to stretch to content */
+}
+
+.post-card-featured {
+    width: 100%;
+    /* Width is structural (100% in column layout, 400px in row layout) and is
+       not animated — animating a layout property would reflow the sibling
+       text+chip column mid-change (sideways drift). Width changes apply
+       instantly. */
+    aspect-ratio: 1.7778;
+}
+
+/* 720px here is a CONTAINER-query threshold on the card's OWN width (.post-list-item
+   sets container-type: inline-size), NOT a viewport breakpoint — it is deliberately
+   independent of Vuetify's 600/960/1264 scale so the card reflows to a row layout
+   based on the space it actually has (e.g. narrower when rails are present). */
+@container (min-width: 720px) {
+    .post-card-inner {
+        flex-direction: row;
+    }
+
+    body .post-card-featured {
+        width: 400px;
+        /* Force image to stretch to the height of the sibling container */
+        align-self: stretch;
+    }
+}
+
+/* PostCard Title Scalability */
+.post-card-title.v-card-title {
+    font-size: 1.5rem;
+    /* text-h5 fallback */
+    line-height: 1.4;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    overflow-wrap: anywhere;
+}
+
+@container (min-width: 720px) {
+    .post-card-title.v-card-title {
+        font-size: 2.125rem;
+        /* text-h4 */
+    }
+}
+
+/* Global Aesthetic Foundations */
+body {
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    background: rgb(var(--v-theme-background));
+    /* height: 100% managed by index.html for stability */
+    position: relative;
+    transition: background-color var(--transition-main), color var(--transition-main);
+}
+
+/* Global Unified Scrollbar Architecture */
+.v-application {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, rgb(var(--v-theme-on-surface)) 12%, transparent) transparent;
+}
+
+.v-theme--dark .v-application {
+    scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, rgb(var(--v-theme-on-surface)) 12%, transparent);
+    border-radius: var(--radius-pill);
+    border: 3px solid transparent;
+    background-clip: content-box;
+    transition: var(--transition-main);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, rgb(var(--v-theme-on-surface)) 25%, transparent);
+    background-clip: content-box;
+}
+
+.v-theme--dark ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    background-clip: content-box;
+}
+
+.v-theme--dark ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+    background-clip: content-box;
+}
+
+/* Global Aesthetic Foundations (continued) */
+
+/* Advanced Glassmorphism & Depth Layers */
+.glass-panel {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-md);
+    transition: var(--transition-main);
+}
+
+/* Shared surface shell */
+body .base-surface-root {
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+/* Clickable surface (BaseSurface :to): a single stretched link overlays the
+   whole card so the entire surface is a navigation target without nesting
+   anchors. The card is the positioning context; interactive children (chips)
+   are lifted above the overlay so they remain independently clickable. */
+.base-surface--link {
+    position: relative;
+}
+
+.base-surface__stretched {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+}
+
+.base-surface--link .v-chip {
+    position: relative;
+    z-index: 2;
+}
+
+/* Rise + fade only — no scale. A center-origin scale (0.98 -> 1) visibly drifts
+   off-center children sideways (e.g. the chip row appears to slide right) and
+   subpixel-blurs text during the animation, so readability wins over the
+   marginal "pop". */
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-up {
+    /* 'both' applies the keyframe's start state during animation-delay
+       (backwards fill), so staggered items stay hidden until their turn
+       instead of flashing visible then snapping to opacity 0. */
+    animation: fadeUp var(--transition-slow) both;
+    will-change: opacity, transform;
+}
+
+/* Page route transition (Vue <transition name="page" mode="out-in">): a single
+   coordinated fade + rise on enter and a quick fade on leave. One transition for
+   the whole view (not a per-view animation) so there is no blank gap or flicker
+   between pages on a route change. */
+.page-enter-active {
+    transition: opacity var(--transition-page-in), transform var(--transition-page-in);
+    will-change: opacity, transform;
+}
+
+.page-leave-active {
+    transition: opacity var(--transition-page-out);
+}
+
+.page-enter-from {
+    /* translateY only (no scale) — same reason as @keyframes fadeUp above:
+       a center-origin scale drifts chips/text sideways during the transition. */
+    opacity: 0;
+    transform: translateY(12px);
+}
+
+.page-leave-to {
+    opacity: 0;
+}
+
+/* Accessibility: honor prefers-reduced-motion by neutralizing non-essential
+   animation and transition for users who request reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Premium Card & Interaction Architecture */
+body .v-card--hover-lift {
+    background: var(--glass-bg);
+    transition: transform var(--transition-main), box-shadow var(--transition-main), border-color var(--transition-main);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+body .v-card--hover-lift:hover {
+    transform: perspective(1px) translateZ(0) translateY(-2px);
+    box-shadow: var(--shadow-xl);
+    border-color: rgba(var(--v-theme-primary), 0.4);
+    z-index: 2;
+}
+
+/* Premium Image Interaction within List */
+.post-list-item:hover .v-img__img {
+    transform: perspective(1px) translateZ(0) scale(1.05);
+}
+
+body .post-list-item .v-img__img {
+    transition: transform var(--transition-zoom-image);
+    will-change: transform;
+    transform: perspective(1px) translateZ(0);
+    backface-visibility: hidden;
+}
+
+body .post-list-item .v-card-title {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    overflow-wrap: anywhere;
+}
+
+/* Markdown Content Enhancements */
+.markdown-body {
+    line-height: 1.8;
+    color: rgba(var(--v-theme-on-surface), 0.87);
+    font-size: 1.125rem;
+    font-variant-ligatures: common-ligatures;
+    letter-spacing: var(--letter-spacing-base);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.markdown-body p {
+    margin-bottom: 1.5rem;
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    line-height: 1.4;
+    font-weight: 700;
+    letter-spacing: var(--letter-spacing-heading);
+    /* Anchored headings (a #hash deep link or a Table of Contents click) align to
+       the top of the scroll container, which sits UNDER the fixed glass app bar.
+       Offset the scroll snap point by the bar height + a small gap so the target
+       heading lands just below the bar instead of hidden behind it. */
+    scroll-margin-top: calc(var(--app-bar-height) + 16px);
+}
+
+.markdown-body h1:first-child,
+.markdown-body h2:first-child,
+.markdown-body h3:first-child,
+.markdown-body h4:first-child,
+.markdown-body h5:first-child,
+.markdown-body h6:first-child {
+    margin-top: 0;
+}
+
+.v-theme--dark .markdown-body h1,
+.v-theme--dark .markdown-body h2,
+.v-theme--dark .markdown-body h3 {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.markdown-body ul,
+.markdown-body ol {
+    margin-bottom: 1.5rem;
+    padding-left: 1.5rem;
+}
+
+.markdown-body li {
+    margin-bottom: 0.5rem;
+}
+
+.img-hover-zoom {
+    transition: transform var(--transition-zoom-image), box-shadow var(--transition-zoom-image);
+    position: relative;
+    z-index: 1;
+}
+
+body .img-hover-zoom:hover {
+    transform: perspective(1px) translateZ(0) scale(1.015);
+    box-shadow: var(--shadow-xl);
+    z-index: 2;
+}
+
+.markdown-image-wrapper {
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    margin: 1.5rem auto;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    max-width: 100%;
+    width: fit-content;
+}
+
+.markdown-body img {
+    max-width: 100%;
+    max-height: 60vh;
+    object-fit: contain;
+    width: auto;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    cursor: zoom-in;
+    transform-origin: center center;
+}
+
+/* Limit Mermaid diagrams size */
+.markdown-body .mermaid svg,
+.markdown-body svg.mermaid {
+    max-width: 100% !important;
+    max-height: 60vh !important;
+    height: auto !important;
+    margin: 1.5rem auto !important;
+    display: block;
+    cursor: zoom-in;
+}
+
+.markdown-body figure {
+    margin: 2rem 0;
+    text-align: center;
+}
+
+.markdown-body figcaption {
+    font-size: 0.875rem;
+    opacity: 0.7;
+    margin-top: 0.5rem;
+    font-style: italic;
+}
+
+.markdown-body blockquote {
+    border-left: 4px solid rgb(var(--v-theme-primary));
+    background: rgba(var(--v-theme-primary), 0.05);
+    padding: 1.5rem 2rem;
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    margin: 2rem 0;
+    font-style: italic;
+}
+
+
+/* Premium Code Block Enhancements */
+.markdown-body .highlight {
+    position: relative;
+    margin: 2.5rem 0;
+    max-width: 100%;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    /* Intrinsic syntax-highlight chrome (always dark), exempt from theme tokens. */
+    background: #1e1e1e !important;
+
+    /* Premium dark background */
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.25);
+}
+
+.markdown-body .highlight pre {
+    margin: 0 !important;
+    padding: 3.5rem 1.5rem 1.5rem 1.5rem !important;
+    /* Space for the toolbar */
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+
+    background: transparent !important;
+    /* Override Hugo defaults */
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+/* The dynamic language label extracted from Hugo's data-lang */
+.markdown-body .highlight pre code[data-lang]::before {
+    content: attr(data-lang);
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    min-height: 28px;
+    padding: 5px 12px;
+    font-family: var(--font-heading);
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.68);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: var(--radius-sm);
+    pointer-events: none;
+    user-select: none;
+    z-index: 3;
+    letter-spacing: 0.06em;
+    line-height: 1.4;
+}
+
+.markdown-body .highlight pre code {
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+
+/* Page title (PageHeader) — long-title wrapping + mobile sizing.
+   Applies to every <page-header> across all views (Post/About/Search/Taxonomy)
+   so titles wrap and scale down consistently, regardless of which slot hosts
+   the header. */
+.page-header-title {
+    overflow-wrap: anywhere;
+    letter-spacing: -1px !important;
+    line-height: 1.3 !important;
+}
+
+@media (max-width: 600px) {
+    .page-header-title {
+        padding-inline: 4px !important;
+        font-size: 2rem !important;
+        line-height: 1.2 !important;
+    }
+
+    .page-header-title .v-icon {
+        margin-right: 4px !important;
+    }
+}
+
+/* Readability & Focus Overrides */
+/* Suppress default browser outline on pointer-driven interactions */
+body .v-chip:focus:not(:focus-visible),
+body .v-card--hover-lift:focus:not(:focus-visible) {
+    outline: none;
+    box-shadow: none;
+}
+
+/* Restore visible focus ring for keyboard navigation (accessibility) */
+body .v-chip:focus-visible {
+    outline: 2px solid rgb(var(--v-theme-primary));
+    outline-offset: 2px;
+}
+
+body .v-card--hover-lift:focus-visible {
+    outline: 2px solid rgb(var(--v-theme-primary));
+    outline-offset: 4px;
+    border-color: rgba(var(--v-theme-primary), 0.5);
+}
+
+/* Whole-card link: the stretched overlay (.base-surface__stretched) is the
+   actual keyboard tab target. It covers the card (inset:0) and the card has
+   overflow:hidden, so a default/positive-offset outline would be clipped at
+   the edge. Draw the ring on the overlay with a negative offset so it sits
+   just inside the card bounds and stays visible. Scoped to the overlay (not
+   :focus-within) so focusing a chip doesn't also outline the card. */
+body .base-surface__stretched:focus-visible {
+    outline: 2px solid rgb(var(--v-theme-primary));
+    outline-offset: -2px;
+}
+
+/* UI Component Overrides & Dark Mode Refinements */
+
+/* [Dark Mode] Replace harsh white holographic sweep with primary-tinted sweep */
+.v-theme--dark .v-card--hover-lift::after {
+    background: linear-gradient(45deg,
+            transparent 45%,
+            rgba(var(--v-theme-primary), 0.18) 50%,
+            transparent 55%);
+}
+
+/* [Dark Mode] Shift inner glow from raw gradient to a primary-tinted glow */
+.v-theme--dark .v-card--hover-lift::before {
+    background: linear-gradient(135deg, rgba(var(--v-theme-primary), 0.12), transparent);
+}
+
+
+/* Premium Button Architecture */
+body .v-btn {
+    border-radius: var(--radius-md);
+    /* Unified with Chips/Pagination */
+
+    text-transform: none;
+    letter-spacing: 0.02em;
+    font-weight: 700;
+    transition: transform var(--transition-main), box-shadow var(--transition-main), background-color var(--transition-main), border-color var(--transition-main);
+    position: relative;
+    z-index: 1;
+}
+
+.v-btn:hover {
+    z-index: 2;
+}
+
+/* Elevated/Primary Buttons Overrides */
+body .v-btn--elevated,
+body .v-btn--variant-elevated {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-sm);
+}
+
+body .v-btn--elevated:hover,
+body .v-btn--variant-elevated:hover {
+    box-shadow: var(--shadow-md);
+    /* Maintain perspective and layer */
+    transform: perspective(1px) translateZ(0) translateY(-2px);
+}
+
+/* Premium Inputs - Safe Glassmorphism (Preserves Notch) */
+body .v-field--variant-outlined {
+    background: var(--glass-bg);
+    border-radius: var(--radius-md);
+    transition: var(--transition-main);
+}
+
+body .v-field--variant-outlined .v-field__outline {
+    --v-field-border-opacity: 1;
+    color: var(--glass-border);
+}
+
+body .v-field--focused.v-field--variant-outlined .v-field__outline {
+    color: rgb(var(--v-theme-primary));
+    --v-field-border-width: 2px;
+}
+
+body .v-field--variant-outlined .v-label.v-field-label--floating {
+    /* Subtle adjustment to avoid collision with thick borders if needed, 
+       but keeping it standard enough for stability */
+    background: transparent;
+}
+
+/* Sticky footer: Vuetify defaults .v-footer to flex: 1 1 auto, so on short
+   pages (loading, empty results, 404) it grows alongside .v-main and floats to
+   the middle of the viewport. Pin it to its natural height so .v-main absorbs
+   all the slack and the footer rests at the bottom. */
+body .v-footer {
+    flex: 0 0 auto;
+    border-top: 1px solid var(--glass-border);
+}
+
+.footer-main {
+    animation-delay: 0.5s;
+}
+
+body .v-theme--dark .v-footer {
+    background: rgba(var(--v-theme-surface), 0.98);
+    border-top: 1px solid var(--glass-border);
+}
+
+body .v-theme--dark .v-footer .opacity-70 {
+    opacity: 0.95;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+body .v-theme--dark .v-footer .v-btn {
+    color: rgba(255, 255, 255, 0.95);
+}
+
+/* -----------------------------------------
+   14. Native Material Components Upgrade
+   ----------------------------------------- */
+
+/* Floating Glass Panels (Drawer, Header, Menus) — high opacity for
+   readability without backdrop-filter. */
+body .v-navigation-drawer.glass-panel,
+body .sticky-nav.glass-panel,
+body .v-menu .glass-panel {
+    background: rgba(var(--v-theme-surface), 0.95);
+}
+
+body .v-theme--dark .v-navigation-drawer.glass-panel,
+body .v-theme--dark .sticky-nav.glass-panel,
+body .v-theme--dark .v-menu .glass-panel {
+    background: rgba(var(--v-theme-surface), 0.98);
+}
+
+/* Premium Lists & Menus — scoped to navigation contexts */
+body .v-list {
+    border-radius: var(--radius-md);
+}
+
+
+/* Apply spacing and lift only for navigation drawer/menu lists,
+   not dense result lists. */
+body .v-navigation-drawer .v-list-item,
+body .v-menu .v-list-item {
+    border-radius: var(--radius-md);
+    margin: 4px 8px;
+
+    transition: transform var(--transition-main), box-shadow var(--transition-main), background-color var(--transition-main);
+    position: relative;
+    z-index: 1;
+}
+
+body .v-navigation-drawer .v-list-item:hover,
+body .v-menu .v-list-item:hover {
+    transform: perspective(1px) translateZ(0) translateY(-2px);
+    background: rgba(var(--v-theme-primary), 0.1);
+    box-shadow: var(--shadow-md);
+    z-index: 2;
+}
+
+/* Organic Pagination (Vuetify 4 split __navigation into __prev/__next/__first/__last) */
+body .v-pagination__item,
+body .v-pagination__prev,
+body .v-pagination__next,
+body .v-pagination__first,
+body .v-pagination__last {
+    border-radius: var(--radius-md);
+    /* Increased for harmony */
+
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--transition-main), box-shadow var(--transition-main), border-color var(--transition-main);
+    margin: 0 4px;
+    position: relative;
+    z-index: 1;
+}
+
+body .v-pagination__item:hover,
+body .v-pagination__prev:hover,
+body .v-pagination__next:hover,
+body .v-pagination__first:hover,
+body .v-pagination__last:hover {
+    transform: perspective(1px) translateZ(0) translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(var(--v-theme-primary), 0.3);
+    z-index: 2;
+}
+
+/* Tighten the gaps on phones so the (already breakpoint-reduced) button row
+   never overflows a narrow viewport. 600px is Vuetify's xs/sm boundary, so this
+   kicks in exactly where PaginationControl drops to its smallest count. */
+@media (max-width: 600px) {
+    body .v-pagination__item,
+    body .v-pagination__prev,
+    body .v-pagination__next,
+    body .v-pagination__first,
+    body .v-pagination__last {
+        margin: 0 2px;
+    }
+}
+
+/* Elevated Chips / Tags */
+body .v-chip {
+    border-radius: var(--radius-md);
+    /* Unified with Buttons/Pagination */
+
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    font-weight: 600;
+    transition: transform var(--transition-main), box-shadow var(--transition-main);
+    /* Ensure chips don't push layout when lifting */
+    margin: 4px 8px 4px 0;
+    vertical-align: middle;
+    /* Rendering Stability: Prevent text jitter and blur during transform */
+    -webkit-font-smoothing: subpixel-antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+/* All chips share one hover treatment for visual consistency — a subtle lift +
+   shadow + accent border (the current-term chip is excepted as inert below). The
+   only cost is a slight double-motion when hovering a chip inside a hover-lift
+   card — an accepted trade-off for consistency. */
+body .v-chip:hover {
+    transform: perspective(1px) translateY(-2px);
+    border-color: rgba(var(--v-theme-primary), 0.5);
+    box-shadow: var(--shadow-md);
+}
+
+/* Secondary Chip Hover Refinement */
+body .v-chip.text-secondary:hover {
+    border-color: rgba(var(--v-theme-secondary), 0.5);
+}
+
+/* Active (current-term) chip is inert: it renders filled + non-navigating
+   (BaseChip sets aria-current="page", :to=null, ripple off). It must stay
+   visually stable so it never signals an interaction it can't fulfil — no
+   hover-lift, no pointer cursor. (Higher specificity than .v-chip:hover, so
+   it overrides the lift regardless of source order.) */
+body .v-chip[aria-current="page"] {
+    cursor: default;
+}
+
+body .v-chip[aria-current="page"]:hover {
+    transform: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border-color: var(--glass-border);
+}
+
+body .v-theme--dark .v-chip[aria-current="page"]:hover {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+
+/* Accessibility: Boost tonal chip background opacity in light mode for higher contrast */
+body:not(.v-theme--dark) .v-chip--variant-tonal .v-chip__underlay {
+    opacity: 0.22;
+}
+
+body:not(.v-theme--dark) .v-chip--variant-tonal:hover .v-chip__underlay {
+    opacity: 0.3;
+}
+
+body .v-theme--dark .v-chip {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Alerts & Skeleton Loaders */
+body .v-alert {
+    border-radius: var(--radius-md);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-md);
+}
+
+body .v-skeleton-loader {
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+
+/* Structural refinements */
+
+/* AppBar border managed by CSS (keeps it out of App.js inline styles). */
+body .sticky-nav.v-app-bar {
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.v-card--hover-lift .v-img {
+    transition: var(--transition-main);
+}
+
+/* Global v-img safety reset to prevent sub-pixel background bleed */
+body .v-img {
+    background: transparent;
+}
+
+body .v-img .v-img__img {
+    display: block;
+}
+
+
+/* Dark mode card border depth: soften glass-border for deep palettes */
+body .v-theme--dark .v-card--hover-lift {
+    border-color: rgba(255, 255, 255, 0.06);
+}
+
+body .v-theme--dark .v-card--hover-lift:hover {
+    border-color: rgba(var(--v-theme-primary), 0.4);
+    /* --mesh-c1 is set at runtime by useTheme.js; fall back to a theme-aware
+       primary tint so the hover shadow is still valid before Vue boots. */
+    box-shadow: 0 12px 24px -10px var(--mesh-c1, rgba(var(--v-theme-primary), 0.45));
+}
+
+
+/* Premium Link Architecture */
+a {
+    text-decoration: none;
+    transition: var(--transition-main);
+}
+
+/* Content-link color — primary, but not on Vuetify component anchors. Vuetify
+   renders a v-btn / v-list-item / v-chip carrying `:to` as an <a>, and (since it
+   sets no explicit color on text controls) a blanket `a { color }` would tint
+   only the routed controls and clash with their <button>/<div> siblings.
+   `:where()` keeps this at low specificity (0,0,1) so classed links
+   (.markdown-body a, .series-nav-title, …) still override it. */
+a:not(:where([class^="v-"], [class*=" v-"])) {
+    color: rgb(var(--v-theme-primary));
+}
+
+.markdown-body a {
+    font-weight: 600;
+    box-shadow: inset 0 -2px 0 0 rgba(var(--v-theme-primary), 0.15);
+    padding: 0 2px;
+    margin: 0 -2px;
+    border-radius: var(--radius-sm);
+}
+
+.markdown-body a:hover {
+    box-shadow: inset 0 -2.5rem 0 0 rgba(var(--v-theme-primary), 0.08);
+    color: rgb(var(--v-theme-primary));
+}
+
+.v-theme--dark .markdown-body a {
+    box-shadow: inset 0 -2px 0 0 rgba(var(--v-theme-primary), 0.3);
+}
+
+.v-theme--dark .markdown-body a:hover {
+    box-shadow: inset 0 -2.5rem 0 0 rgba(var(--v-theme-primary), 0.15);
+}
+
+/* Vuetify Class Overrides for Unified Design */
+body .rounded-3xl {
+    border-radius: var(--radius-lg);
+}
+
+body .rounded-xl {
+    border-radius: var(--radius-md);
+}
+
+body .rounded-pill {
+    border-radius: var(--radius-pill);
+}
+
+/* Premium Table Architecture */
+.markdown-body table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 2rem 0;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--glass-border);
+    background: var(--glass-bg);
+    box-shadow: var(--shadow-sm);
+}
+
+.markdown-body th,
+.markdown-body td {
+    padding: 1rem 1.25rem;
+    text-align: left;
+    border-bottom: 1px solid var(--glass-border);
+    vertical-align: middle;
+}
+
+.markdown-body th {
+    background: rgba(var(--v-theme-primary), 0.05);
+    font-family: var(--font-heading);
+    font-weight: 700;
+    color: rgb(var(--v-theme-primary));
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+}
+
+.markdown-body tr:last-child td {
+    border-bottom: none;
+}
+
+.markdown-body tr:nth-child(even) {
+    background: rgba(var(--v-theme-on-surface), 0.02);
+}
+
+.markdown-body tr:hover td {
+    background: rgba(var(--v-theme-primary), 0.04);
+    transition: background var(--transition-fast);
+}
+
+/* Responsive Table Wrapper. 768px (tablet-portrait) is intentional and specific
+   to wide tables — below it, tables scroll horizontally instead of squashing. It
+   is a content-driven choice, not aligned to Vuetify's 600/960 viewport scale. */
+@media (max-width: 768px) {
+    .markdown-body table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+}
+
+/* Basic Mermaid Diagram Support */
+.mermaid {
+    margin: 2rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-x: auto;
+    background: rgb(var(--v-theme-surface));
+    padding: 1rem;
+    border-radius: var(--radius-sm);
+    /* Reserve a floor so swapping the rendered SVG in for the raw source doesn't
+       jolt the page (cumulative layout shift). The window is longer now Mermaid
+       loads lazily — the block holds this height until its diagram renders. */
+    min-height: 6rem;
+}
+
+.mermaid svg {
+    max-width: 100% !important;
+    height: auto !important;
+}
+
+/* Fallback for a diagram that failed to render (e.g. invalid syntax): show a
+   notice and keep the original source visible instead of a blank/raw block. */
+.mermaid.mermaid--error {
+    display: block;
+    justify-content: initial;
+    background: rgba(var(--v-theme-error), 0.06);
+    border: 1px solid rgba(var(--v-theme-error), 0.35);
+}
+
+.mermaid-error__title {
+    margin: 0 0 0.5rem;
+    font-weight: 600;
+    color: rgb(var(--v-theme-error));
+}
+
+.mermaid-error__source {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 0.85em;
+    opacity: 0.85;
+}
+
+/* KaTeX Math Formula Support */
+.katex-display {
+    margin: 1.5rem 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+    padding: 0.5rem 0;
+}
+
+.math.display {
+    display: block;
+    text-align: center;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.slotify-js .math:not([data-processed]) {
+    visibility: hidden;
+}
+
+/* Guard: preserves text baseline and prevents inline-block CSS 2.1 §10.8.1 overflow baseline displacement */
+.math.inline {
+    display: inline;
+}
+
+.math[data-processed="error"] {
+    color: rgb(var(--v-theme-error));
+    background: rgba(var(--v-theme-error), 0.08);
+    padding: 0.2rem 0.4rem;
+    border-radius: var(--radius-sm);
+}
+
+.math-error__title {
+    margin: 0 0.35rem 0 0;
+    font-weight: 600;
+}
+
+p.math-error__title {
+    margin: 0 0 0.5rem;
+}
+
+.math-error__source {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 0.85em;
+    opacity: 0.85;
+}
+
+/* Universal Lightbox Architecture */
+body .lightbox-dialog {
+    box-shadow: none;
+    background: transparent;
+    overflow: visible;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.lightbox-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    /* Align close button to the right */
+    gap: 12px;
+    max-width: 95%;
+}
+
+.lightbox-image {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 85vh;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-xl);
+    object-fit: contain;
+    background: rgba(0, 0, 0, 0.05);
+}
+
+body .lightbox-close-btn {
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    backdrop-filter: blur(8px);
+    transition: var(--transition-main);
+}
+
+body .lightbox-close-btn:hover {
+    background: rgba(0, 0, 0, 0.8);
+    transform: scale(1.1);
+}
+
+.lightbox-content-scrollable {
+    width: max-content;
+    height: auto;
+    min-width: 80vw;
+    max-width: 100%;
+    max-height: 85vh;
+    padding: 1rem;
+    overflow: auto;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    /* Ensure tall content starts from the top and doesn't cut off */
+    background: rgb(var(--v-theme-surface));
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-xl);
+}
+
+/* Custom Rounded Scrollbar for Lightbox */
+.lightbox-content-scrollable::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.lightbox-content-scrollable::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    /* very light track */
+    border-radius: var(--radius-md);
+}
+
+.lightbox-content-scrollable::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: var(--radius-md);
+}
+
+.lightbox-content-scrollable::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.v-theme--dark .lightbox-content-scrollable::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.v-theme--dark .lightbox-content-scrollable::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.v-theme--dark .lightbox-content-scrollable::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
+
+body .lightbox-content-scrollable svg {
+    width: 100%;
+    max-width: none;
+    height: auto;
+    max-height: none;
+    /* Remove height constraint so it can scroll */
+    margin: auto 0;
+    /* Center vertically if container is taller, but keep top aligned if it overflows */
+}
+
+.v-theme--dark .lightbox-content-scrollable {
+    background: #121212;
+    /* Solid dark background */
+}
+
+/* Sidebar panels — shared base for the ToC & Series Navigator widgets.
+   Both render through the <sidebar-panel> component, so their shell, header
+   row and collapse behaviour are identical. The rules below cover the shared
+   typography (header label, chevron, list, links); per-widget sections (24.1 /
+   24.2) add only the differences: accent color, ToC active indent, Series badges. */
+.sidebar-panel {
+    border-radius: var(--radius-lg);
+    /* Flex column that clips to its rounded edge; vertical scrolling lives on
+       .sidebar-panel-body, not here. max-height:inherit passes the sticky-rail
+       height cap down from ContentShell's rail column (was inline before). */
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+    max-height: inherit;
+    overflow: hidden;
+}
+
+/* Fixed-header + scrollable-body layout: the panel is a flex column (overflow
+   hidden), the header is a fixed sibling, and only the body scrolls — so the
+   scrollbar is contained to the content area (not the full card height) and the
+   title never scrolls away. No sticky/masking needed; the header is physically
+   above the scroll region. */
+.sidebar-panel-header {
+    flex: 0 0 auto;   /* fixed: never scrolls, never shrinks */
+}
+
+.sidebar-panel-body {
+    flex: 0 1 auto;   /* shrink to the available height; do NOT stretch when short */
+    min-height: 0;    /* allow shrinking below content height so overflow scrolls */
+    overflow-y: auto; /* the scrollbar lives HERE, beside the content only */
+    overscroll-behavior: contain;
+    /* Soften the scroll edges so a MID-SCROLL clipped line fades out instead of
+       hard-cutting flush against the card edge (padding only helps at the scroll
+       extremes, not mid-scroll). Pairs with pb-6 so the last item stays crisp at
+       max scroll while the fade lands on the padding. */
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%);
+}
+
+.sidebar-panel-header:focus-visible {
+    outline: 2px solid;
+    outline-offset: -2px;
+}
+
+.sidebar-panel-title {
+    font-family: var(--font-heading);
+    font-size: 0.85rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.sidebar-panel--primary .sidebar-panel-title,
+.sidebar-panel--primary .sidebar-panel-header:focus-visible {
+    color: rgb(var(--v-theme-primary));
+}
+
+.sidebar-panel--secondary .sidebar-panel-title,
+.sidebar-panel--secondary .sidebar-panel-header:focus-visible {
+    color: rgb(var(--v-theme-secondary));
+}
+
+.sidebar-panel-chevron {
+    transition: transform var(--transition-fast);
+}
+
+.sidebar-panel-chevron-open {
+    transform: rotate(180deg);
+}
+
+.sidebar-panel-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+}
+
+.sidebar-panel-link {
+    padding: 0.4rem 0.6rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: rgba(var(--v-theme-on-surface), 0.7);
+    text-decoration: none;
+    /* `anywhere` (not break-word) also lowers min-content so flex text shrinks
+       and wraps instead of forcing the row past the card edge. */
+    overflow-wrap: anywhere;
+    min-width: 0;
+    transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+/* Slot-owned widget specifics — the ToC-specific (.toc-*) and Series-specific (.series-nav-*)
+   rules are SELF-CONTAINED with their slots: they live in the <style> block of
+   layouts/partials/slots/postView/right.html and .../left.html respectively
+   (alongside that slot's markup + i18n). Only the SHARED sidebar-panel base
+   (section 24 above) stays here, because both slots compose it. Overriding a
+   slot replaces its markup, strings AND styles as one unit. */
+
+/* Enhanced Code Block Utilities */
+/* (.markdown-body .highlight base rule — including max-width/overflow — is
+   defined once in section 12 above.) */
+.markdown-body .code-copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    /* Code-block stacking (local to .highlight): language label = 3 (top-left),
+       copy button = 10 (top-right). They never overlap (opposite corners); the
+       gap just keeps the interactive button safely above the static label. */
+    z-index: 10;
+    min-height: 28px;
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.68);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: var(--radius-sm);
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity var(--transition-main), transform var(--transition-main), background-color 0.2s;
+    height: auto;
+    text-transform: none;
+    cursor: pointer;
+}
+
+.markdown-body .highlight:hover .code-copy-btn,
+.markdown-body pre:hover .code-copy-btn {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.markdown-body .code-copy-btn:hover {
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
+}
+
+.markdown-body .code-copy-btn.copied {
+    background: color-mix(in srgb, rgb(var(--v-theme-success)) 20%, transparent);
+    border-color: color-mix(in srgb, rgb(var(--v-theme-success)) 40%, transparent);
+    color: rgb(var(--v-theme-success));
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Search Keyword Highlighting */
+.search-highlight {
+    background: color-mix(in srgb, rgb(var(--v-theme-primary)) 20%, transparent);
+    color: rgb(var(--v-theme-primary));
+    font-weight: 700;
+    padding: 2px 4px;
+    border-radius: var(--radius-sm);
+}
+
+/* Accessibility Forced Colors Override */
+@media (forced-colors: active) {
+    body .v-chip,
+    body .v-btn,
+    .markdown-body table,
+    .markdown-body .code-copy-btn,
+    .search-highlight {
+        border: 1px solid CanvasText;
+    }
+}

@@ -1,0 +1,12 @@
+# plerosis configuration.
+# Reference: https://gitlab.com/116lab/coherence/plerosis/plerosis/-/blob/v0.1.1/README.md#configuration
+
+# Playwright browser suite (package.json "test": "playwright test"), all four
+# projects. IDs keep the [project] prefix because responsive.spec.js runs the
+# same titles under both mobile and tablet; strip drops :line:col so a moved
+# test keeps its citation.
+[evidence.playwright]
+argv = ["npx", "--no-install", "playwright", "test", "--list"]
+pattern = '^\s+(?P<id>\[[^\]]+\] › \S+\.spec\.js:\d+:\d+ › .+)$'
+separator = " › "
+strip = ':\d+:\d+'

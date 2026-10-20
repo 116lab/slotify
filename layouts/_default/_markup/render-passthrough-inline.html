@@ -1,0 +1,6 @@
+{{- /*
+  render-passthrough-inline.html
+  Renders an inline LaTeX formula captured by Goldmark's passthrough extension.
+  The formula source is preserved in data-math for useKatex.js SPA hydration.
+*/ -}}
+<span class="math inline" data-math="{{ .Inner }}">{{ .Inner }}</span>

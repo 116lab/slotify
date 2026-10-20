@@ -1,0 +1,37 @@
+{
+  "menu": {
+    "home": "Home",
+    "posts": "Posts",
+    "tags": "Tags",
+    "series": "Series",
+    "search": "Search",
+    "about": "About"
+  },
+  "ui": {
+    "readMore": "Read More",
+    "loadingFailed": "Load Failed",
+    "notFoundText": "The requested page could not be found or a server error occurred.",
+    "backToHome": "Back to Home",
+    "searchHint": "Search for posts or tags...",
+    "noResults": "No results found for",
+    "author": "Author",
+    "readingTime": "{min} min read",
+    "words": "{count} words",
+    "searchPrompt": "Enter keywords above to start searching.",
+    "switchLanguage": "Switch Language",
+    "switchColorScheme": "Switch color scheme: {name}",
+    "switchToLight": "Switch to Light Mode",
+    "switchToDark": "Switch to Dark Mode",
+    "themeStyle": "Theme Style",
+    "lightboxImage": "Lightbox Image",
+    "close": "Close",
+    "copyCode": "Copy",
+    "copiedCode": "Copied!",
+    "copyCodeFailed": "Error",
+    "mermaidError": "Diagram could not be rendered (syntax error)",
+    "mathError": "Formula could not be rendered (syntax error)"
+  },
+  "home": {
+    "latestArticles": "Latest Articles"
+  }
+}

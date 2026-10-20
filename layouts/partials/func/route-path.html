@@ -1,0 +1,22 @@
+{{- /*
+  func/route-path.html
+  Convert a Hugo .RelPermalink into a base-LESS in-app SPA route path.
+
+  WHY: the SPA router uses createWebHistory(basePath) AND routes.js withBase()
+  — BOTH re-add the deployment base (e.g. /slotify/). A .RelPermalink already
+  carries that base when the site is built with a subpath --baseURL, so feeding
+  it straight into <router-link :to> / fetchContentData doubles the base
+  (/slotify/slotify/...). This partial strips the base prefix (and the trailing
+  index.json that JSON outputs carry) so the emitted value is the base-less
+  in-app route the SPA contract expects. At a root deploy (base = "/") it is a
+  no-op apart from the index.json trim.
+
+  Input  (.): a RelPermalink string, e.g. "/slotify/posts/x/index.json"
+  Output:     base-less route path,     e.g. "/posts/x/"
+*/ -}}
+{{- $url := replace . "index.json" "" -}}
+{{- $base := (urls.Parse site.BaseURL).Path -}}
+{{- if and $base (ne $base "/") -}}
+  {{- $url = strings.TrimPrefix (strings.TrimSuffix "/" $base) $url -}}
+{{- end -}}
+{{- return $url -}}

@@ -1,0 +1,11 @@
+{{- /*
+  func/resolve-image.html
+  Returns a page's display image as a URL string. A relative `image` param is
+  resolved against the page's bundle resources; absolute URLs pass through.
+  Returns "" when no image is set. Context (.) is the page.
+*/ -}}
+{{- $image := .Params.image | default "" -}}
+{{- if and $image (not (urls.Parse $image).IsAbs) -}}
+  {{- with .Resources.GetMatch $image -}}{{- $image = .RelPermalink -}}{{- end -}}
+{{- end -}}
+{{- return $image -}}

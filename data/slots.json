@@ -1,0 +1,23 @@
+{
+  "appHeader": {},
+  "home/banner": {},
+  "homeView/left": {},
+  "homeView/right": {},
+  "postView/top": {},
+  "postView/contentTop": {},
+  "postView/contentBottom": {},
+  "postView/left": {},
+  "postView/right": {},
+  "postView/bottom": {},
+  "aboutView/top": {},
+  "aboutView/contentTop": {},
+  "aboutView/contentBottom": {},
+  "aboutView/left": {},
+  "aboutView/right": {},
+  "aboutView/bottom": {},
+  "taxonomyView/left": {},
+  "taxonomyView/right": {},
+  "searchView/left": {},
+  "searchView/right": {},
+  "footer": {}
+}

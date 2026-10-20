@@ -1,0 +1,15 @@
+{{- /*
+  func/pagination-config.html
+  The single place that resolves the pagination params and their defaults, so
+  every consumer — the JSON payloads (home.json / list.json), the crawlable
+  seobodies (index.html / list.html), and the __SLOTIFY_CONFIG__ inject
+  (baseof.html) — agrees on one mode and page size instead of repeating the
+  `| default` fallbacks. Context (.) is the page. Returns { mode, size }.
+
+    mode — "client" (full feed, sliced in the SPA) or "static" (Hugo paginator).
+    size — feed page size as an int (used in both modes).
+*/ -}}
+{{- return (dict
+    "mode" (site.Params.paginationMode | default "client")
+    "size" (int (site.Params.pagerSize | default 10))
+  ) -}}

@@ -1,0 +1,170 @@
+#!/bin/sh
+# pre-commit hook to verify vendor dependencies and prevent corrupted commits.
+
+# Resolve a usable Python interpreter. macOS/Linux ship `python3`; only some
+# environments expose a bare `python` (and Windows ships the `py` launcher).
+# We must PROBE that a candidate actually RUNS, not merely that it is on PATH:
+# on Windows the `python3` on PATH is often the Microsoft Store stub, for which
+# `command -v python3` SUCCEEDS but executing it exits non-zero with no output —
+# which silently aborted every commit under a misleading "vendor tampering"
+# message. Pick the first candidate that can execute a trivial program.
+PY=""
+for cand in python3 python py; do
+    if command -v "$cand" >/dev/null 2>&1 && "$cand" -c "import sys; sys.exit(0)" >/dev/null 2>&1; then
+        PY="$cand"
+        break
+    fi
+done
+if [ -z "$PY" ]; then
+    echo "❌ [ERROR] No working Python interpreter (python3/python/py) found on PATH. Commit aborted."
+    exit 1
+fi
+
+echo "======================================================"
+echo "    Running pre-commit Enterprise Architecture Audit  "
+echo "======================================================"
+
+echo "1. Verifying Zero External Dependencies (Vendor Integrity)..."
+$PY .agent/scripts/verify-vendor.py
+
+if [ $? -ne 0 ]; then
+    echo "======================================================"
+    echo "❌ [ERROR] Vendor verification failed. Commit aborted."
+    echo "Please ensure you have not manually edited files in static/vendor/."
+    echo "To update dependencies, edit data/vendor.json and run .agent/scripts/download-vendor.py."
+    echo "======================================================"
+    exit 1
+fi
+
+echo "2. Verifying Raw-Vue lifecycle ordering (SKILL.md section 10)..."
+$PY .agent/scripts/check-lifecycle.py
+
+if [ $? -ne 0 ]; then
+    echo "======================================================"
+    echo "❌ [ERROR] Lifecycle ordering check failed. Commit aborted."
+    echo "Move onMounted/onUnmounted/watch registration BEFORE any await"
+    echo "in async setup() (no-build Vue loses instance context after await)."
+    echo "======================================================"
+    exit 1
+fi
+
+echo "3. Verifying Linux-First line endings (LF)..."
+$PY .agent/scripts/enforce-lf.py
+
+if [ $? -ne 0 ]; then
+    echo "======================================================"
+    echo "❌ [ERROR] Line-ending check failed. Commit aborted."
+    echo "Run '$PY .agent/scripts/enforce-lf.py --fix' to normalize CRLF to LF."
+    echo "======================================================"
+    exit 1
+fi
+
+echo "4. Verifying 2-space indentation (SKILL.md section 3)..."
+$PY .agent/scripts/check-indent.py
+
+if [ $? -ne 0 ]; then
+    echo "======================================================"
+    echo "❌ [ERROR] Indentation check failed. Commit aborted."
+    echo "Every .js file under static/js/ MUST use strict 2-space indentation"
+    echo "(no tabs, no 4-space unit). Reflow the offending lines to 2 spaces."
+    echo "======================================================"
+    exit 1
+fi
+
+echo "5. Verifying Color/Palette SSOT (SKILL.md section 11)..."
+$PY .agent/scripts/verify-theme.py
+
+if [ $? -ne 0 ]; then
+    echo "======================================================"
+    echo "❌ [ERROR] Palette SSOT check failed. Commit aborted."
+    echo "The theme palette MUST live only in data/theme-palette.json and flow"
+    echo "through Hugo (window.__SLOTIFY_THEMES__) to config/themes.js."
+    echo "======================================================"
+    exit 1
+fi
+
+echo "6. Verifying UI-language key parity (SKILL.md section 12)..."
+$PY .agent/scripts/verify-i18n.py
+
+if [ $? -ne 0 ]; then
+    echo "======================================================"
+    echo "❌ [ERROR] UI-language check failed. Commit aborted."
+    echo "Every static/js/i18n/<code>.json MUST define the same keys, and match"
+    echo "the locale registry in data/locales.json."
+    echo "======================================================"
+    exit 1
+fi
+
+echo "7. Verifying Slotify Slots integrity (SKILL.md section 13)..."
+$PY .agent/scripts/verify-hooks.py
+
+if [ $? -ne 0 ]; then
+    echo "======================================================"
+    echo "❌ [ERROR] Slots integrity check failed. Commit aborted."
+    echo "data/slots.json, layouts/partials/slots/**, the <slotify-slot>"
+    echo "mounts, and the index.html injection must stay 1:1."
+    echo "======================================================"
+    exit 1
+fi
+
+echo "8. Verifying slot framework-isolation (SKILL.md section 13)..."
+$PY .agent/scripts/verify-slot-isolation.py
+
+if [ $? -ne 0 ]; then
+    echo "======================================================"
+    echo "❌ [ERROR] Slot isolation check failed. Commit aborted."
+    echo "Slot partials MUST use the ctx / slotify:* contract, not Vue/Vuetify/"
+    echo "router internals (v-theme--, useTheme, VueRouter, Vuetify.*, ...)."
+    echo "======================================================"
+    exit 1
+fi
+
+echo "9. Verifying slot ctx contract (SKILL.md section 13)..."
+$PY .agent/scripts/verify-slot-ctx.py
+
+if [ $? -ne 0 ]; then
+    echo "======================================================"
+    echo "❌ [ERROR] Slot ctx contract check failed. Commit aborted."
+    echo "Reserved ambient keys (siteConfig/route/theme/t) are theme-owned: a"
+    echo "<slotify-slot :ctx> mount must not pass them, and ctx must be built via"
+    echo "buildSlotCtx (utils/slotCtx.js, the SSOT)."
+    echo "======================================================"
+    exit 1
+fi
+
+echo "10. Verifying build-time site-config SSOT (SKILL.md section 13)..."
+$PY .agent/scripts/verify-site-ssot.py
+
+if [ $? -ne 0 ]; then
+    echo "======================================================"
+    echo "❌ [ERROR] Site-config SSOT check failed. Commit aborted."
+    echo "Site config is build-time data: build it once in func/site-config.html,"
+    echo "inject it as window.__SLOTIFY_SITE__ (baseof.html) and consume it in"
+    echo "main.js. It MUST NOT be fetched at runtime."
+    echo "======================================================"
+    exit 1
+fi
+
+echo "11. Testing changelog validation rules..."
+$PY .agent/scripts/test-verify-changelog.py
+
+if [ $? -ne 0 ]; then
+    echo "======================================================"
+    echo "❌ [ERROR] Changelog validator checks failed. Commit aborted."
+    echo "======================================================"
+    exit 1
+fi
+
+echo "12. Verifying changelog sections and comparison links..."
+$PY .agent/scripts/verify-changelog.py
+
+if [ $? -ne 0 ]; then
+    echo "======================================================"
+    echo "❌ [ERROR] Changelog verification failed. Commit aborted."
+    echo "Keep one top [Unreleased] section and valid tag comparisons."
+    echo "======================================================"
+    exit 1
+fi
+
+echo "✅ [SUCCESS] Architecture audit passed. Proceeding with commit..."
+exit 0
